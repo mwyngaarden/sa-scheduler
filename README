@@ -1,0 +1,53 @@
+
+Legal details
+-------------
+
+SACS Copyright 2011 by Martin Wyngaarden.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+
+See the file "copying.txt" for details.
+
+
+
+
+General
+-------
+
+Today's date is July 7, 2011. 
+
+SACS is a class scheduler that uses instructor aversions and preferences to put
+together a working schedule with a list of courses taken from a CSV file using 
+rooms specified in a seperate CSV.  The structure of courses.csv allows classes
+to be scheduled avoiding time slots for any other specified class, to be
+scheduled or not, and of course avoid instructor blocks, where applicable.
+
+The only dependencies I have knowingly introduced that shouldn't be too hard to 
+eliminate are __popcnt64 from intrin.h and of course the inclusion of a few
+functions taken from the publicly available Boost (1.46.1) libraries to aid in
+multi-threading and random number generation.
+
+
+
+
+Contact me
+----------
+
+You can contact me at wyngaardenm@gmail.com
+
+
+

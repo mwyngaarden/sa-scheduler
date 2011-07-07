@@ -1,0 +1,6 @@
+July 5 23:38
+instructor block(void) calculation is failing
+
+July 7
+multi-threading has been gutted since adopting a simulated annealing
+optimization method and moving away from a genetic algorithm
