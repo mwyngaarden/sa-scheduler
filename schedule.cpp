@@ -129,7 +129,7 @@ int Schedule::optimize()
         cout << "temperature: " << temp << endl << endl;
       }
 
-      if (done(temp, time(NULL))) {
+      if (temp < ABS_TEMP) {
         m_end_time = time(NULL);
         m_finished = true;
         //display_stats(best_state, iter + 1); shouldnt be here?
@@ -372,13 +372,6 @@ int Schedule::num_conflicts(const uint64_t bs)
 int Schedule::get_duration()
 {
   return static_cast<int>(difftime(m_end_time, m_start_time));
-};
-
-bool Schedule::done(double temp, time_t dur)
-{
-  return options[OPT_EXITCOND]
-         ? difftime(dur, m_start_time) >= options[OPT_RUNTIME]
-         : temp <= ABS_TEMP;
 };
 
 void Schedule::display_stats(const state_t &state, int iter)

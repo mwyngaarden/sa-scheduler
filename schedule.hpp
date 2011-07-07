@@ -53,7 +53,6 @@ class Schedule : public Course
         } m_week_idx[336];
     };
 
-    bool done             (double temp, time_t dur);
     int num_conflicts     (uint64_t bs);
     void display_stats    (const state_t &state, int iter);
     void save_scheds      (const state_t &best_state);
