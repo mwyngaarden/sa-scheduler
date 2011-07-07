@@ -1,0 +1,13 @@
+===== short =====
+options in namespace=
+multiple output format
+fix bug with VOIDs
+
+
+===== long =====
+sanity checks on course ids, does room exist? 
+consecutive class penalty
+
+
+
+
