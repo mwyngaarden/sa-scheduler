@@ -20,21 +20,21 @@ class Schedule : public Course
     Schedule();
 
     void get_bitsched(
-      course_t &course,
+      course_t                        &course,
       std::map<std::string, course_t> &crs_name_idx,
       std::map<std::string, uint64_t> &u_crs_idx,
       std::map<std::string, uint64_t> &u_instr_idx,
       std::map<std::string, uint64_t> &u_room_idx,
-      boost::mt19937 &my_rng);
+      boost::mt19937                  &my_rng);
 
     int get_duration();
     int optimize();
     void perturb_state(
-      const state_t &best_state,
+      const state_t                   &best_state,
       std::map<std::string, course_t> &crs_name_idx,
-      boost::mt19937 &my_rng,
-      health_t &health,
-      std::vector<course_t> &cur_state);
+      boost::mt19937                  &my_rng,
+      health_t                        &health,
+      std::vector<course_t>           &cur_state);
 
     // TODO: clean up this hack!
     class Week
@@ -90,7 +90,7 @@ const double PB_TMUT   =   0.5;
 
 const double ABS_TEMP    = 1.0e-6;
 const double INIT_TEMP   = 1.0e+5;
-const double COOL_RATE   = 1.0 - 1.0e-3;
+const double COOL_RATE   = 0.999;
 const double DELTA_SCALE = 1.0e-13;
 
 }

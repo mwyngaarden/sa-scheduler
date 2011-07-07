@@ -17,16 +17,18 @@ class Bias
 
     int get_bias(const std::string &instr, uint64_t bit_sched);
                  
-    int get_bias(const std::string &instr, 
-                 double start_time, 
-                 double end_time,
-                 uint64_t days);
+    int get_bias(
+      const std::string &instr, 
+      double start_time, 
+      double end_time,
+      uint64_t days);
 
-    void set_bias(const std::string &instr, 
-                  double start_time, 
-                  double end_time,
-                  uint64_t days, 
-                  e_bias bias);
+    void set_bias(
+      const std::string &instr, 
+      double start_time, 
+      double end_time,
+      uint64_t days, 
+      e_bias bias);
 
   private:
     std::map<std::string, std::vector<e_bias> > m_mapstr_bias;

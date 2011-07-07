@@ -362,6 +362,7 @@ inline double stdevp(const std::vector<double> &n, const double mean)
   return sqrt(sum_sq / n.size());
 }
 
+// TODO: fix bias scoring
 inline uint64_t get_score(const health_t &health)
 {
   uint64_t score = static_cast<uint64_t>(health.fitness)      << 54 

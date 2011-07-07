@@ -89,8 +89,8 @@ Bias::Bias()
       str = make_upper(get_token(get_token(read_str, i, ","), 2, ":"));
 
       if (str != "ALL" && 
-         (token_count(str, "-") != 2 || get_token(str, 0, "-") == "" || 
-          get_token(str, 1, "-") == "")) {
+          (token_count(str, "-") != 2 || get_token(str, 0, "-") == "" || 
+           get_token(str, 1, "-") == "")) {
         oss << "Invalid schedule descriptor at line " << line
             << ": invalid time";
         debug.push_error(oss.str());

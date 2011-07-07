@@ -83,10 +83,9 @@ int Schedule::optimize()
     str = (*course_it).second.name;
 
     crs_name_idx[str] = (*course_it).second;
-    crs_name_idx[str].rsrv_blks  |=
-      make_bitsched(crs_name_idx[str].start_time,
-                    crs_name_idx[str].end_time,
-                    crs_name_idx[str].days);
+    crs_name_idx[str].rsrv_blks |= make_bitsched(crs_name_idx[str].start_time,
+                                                 crs_name_idx[str].end_time,
+                                                 crs_name_idx[str].days);
   }
 
   state_t best_state;
@@ -141,13 +140,11 @@ int Schedule::optimize()
   } // end while
 }
 
-// TODO: cleaner stats
 void Schedule::save_scheds(const state_t &best_state)
 {
   bool invalid = false;
   cout << endl;
 
-  // TODO: self-explanatory
   if (best_state.health.instr_colls) {
     cout << "Collisions with instructors scheduled concurrently:" << endl;
     for (int i = 0; i < best_state.state.size(); i++) {
@@ -188,7 +185,7 @@ void Schedule::save_scheds(const state_t &best_state)
     invalid = true;
   }
 
-  if (invalid) { // TODO: error msg with stats!
+  if (invalid) { 
     return;
   }
 
@@ -237,7 +234,11 @@ void Schedule::save_scheds(const state_t &best_state)
   instr_html.open("instr.html");
   room_html.open("room.html");
 
-  for (i = 0; i < best_state.state.size(); i++) {
+  // indices are built using an array of 7*48=336 m_week_t structures for all 
+  // groups, instructors, and rooms using the day and time as the index, for 
+  // example, monday (=1) at 15hrs (=30) = [1 * 48 + 30]  
+
+  for (i = 0; i < best_state.state.size(); i++) { // cycle through classes
     bit_sched  = best_state.state[i].rsrv_blks;
     days       = bit_sched >> 56;
     times      = (bit_sched & MASK_TIME) >> 16;
@@ -248,7 +249,7 @@ void Schedule::save_scheds(const state_t &best_state)
     room_id = best_state.state[i].room_id;
     group   = best_state.state[i].group;
 
-    for (j = 0; j < vec_bitpos_idx[days].size(); j++) {
+    for (j = 0; j < vec_bitpos_idx[days].size(); j++) { // cycle through bit-days
       idx = vec_bitpos_idx[days][j] + start_time;
 
       for (k = 0; k < best_state.state[i].vec_instr.size(); k++) {
@@ -258,10 +259,12 @@ void Schedule::save_scheds(const state_t &best_state)
         mapstr_instr[str].m_week_idx[idx].span = blocks;
       }
 
-      mapstr_room[room_id].m_week_idx[idx].data = break_instr(best_state.state[i].vec_instr) + id;
+      mapstr_room[room_id].m_week_idx[idx].data = 
+        break_instr(best_state.state[i].vec_instr) + id;
+
       mapstr_room[room_id].m_week_idx[idx].span = blocks;
 
-      for (k = 1; k < blocks; k++) {
+      for (k = 1; k < blocks; k++) { // extend html table data element
         for (l = 0; l < best_state.state[i].vec_instr.size(); l++) {
           mapstr_instr[best_state.state[i].vec_instr[l]].m_week_idx[idx + k].data = "SPAN";
         }
@@ -276,7 +279,9 @@ void Schedule::save_scheds(const state_t &best_state)
       for (j = 0; j < vec_bitpos_idx[days].size(); j++) {
         idx = vec_bitpos_idx[days][j] + start_time;
 
-        mapstr_group[str].m_week_idx[idx].data = break_instr(best_state.state[i].vec_instr) + id + "<br>" + room_id;
+        mapstr_group[str].m_week_idx[idx].data = 
+          break_instr(best_state.state[i].vec_instr) + id + "<br>" + room_id;
+
         mapstr_group[str].m_week_idx[idx].span = blocks;
 
         for (k = 1; k < blocks; k++) {
@@ -394,12 +399,12 @@ void Schedule::display_stats(const state_t &state, int iter)
 }
 
 void Schedule::get_bitsched(
-  course_t &course,
+  course_t              &course,
   map<string, course_t> &crs_name_idx,
   map<string, uint64_t> &u_crs_idx,
   map<string, uint64_t> &u_instr_idx,
   map<string, uint64_t> &u_room_idx,
-  boost::mt19937 &my_rng)
+  boost::mt19937        &my_rng)
 {
   int i, j;
   int idx;
@@ -492,11 +497,11 @@ void Schedule::get_bitsched(
 }
 
 void Schedule::perturb_state(
-  const state_t &best_state,
+  const state_t         &best_state,
   map<string, course_t> &crs_name_idx,
-  boost::mt19937 &my_rng,
-  health_t &health,
-  vector<course_t> &cur_state)
+  boost::mt19937        &my_rng,
+  health_t              &health,
+  vector<course_t>      &cur_state)
 {  
   bool room_change;
   

@@ -238,6 +238,7 @@ bool Course::push_course(course_t &course)
      for (i = 9; i < 15; i++) {
        course.vec_avail_times.push_back(rand_sched[3][i]);
      }
+
   } else if (course.const_time && course.const_days) {
     course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.days));
 
@@ -251,17 +252,20 @@ bool Course::push_course(course_t &course)
           course.vec_avail_times.push_back(bs);
       }
     }
+
   } else if (course.const_time) {
      bs = make_bitsched(course.start_time, course.end_time, 2); // dummy day
      for (i = 0; i < randsched_idx[course.hours]; i++)
        if (!((rand_sched[course.hours][i] ^ bs) & MASK_TIME)) {
          course.vec_avail_times.push_back(rand_sched[course.hours][i]);
        }
+
   } else if (course.const_days) {
     for (i = 0; i < randsched_idx[course.hours]; i++)
       if (!(rand_sched[course.hours][i] >> 56 ^ course.days)) {
         course.vec_avail_times.push_back(rand_sched[course.hours][i]);
       }
+
   } else {
     for (i = 0; i < randsched_idx[course.hours]; i++) {
       course.vec_avail_times.push_back(rand_sched[course.hours][i]);
