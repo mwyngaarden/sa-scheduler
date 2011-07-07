@@ -43,6 +43,9 @@ functions taken from the publicly available Boost (1.46.1) libraries to aid in
 multi-threading, random number generation, and handling options taken from the 
 command line and a configuration file.
 
+SACS currently only works on 64-bit platforms, although a 32-bit port is in the 
+works and should be available in less than a week.
+
 
 
 
