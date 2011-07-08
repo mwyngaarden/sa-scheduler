@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -78,7 +78,7 @@ class Schedule : public Course
 
   private:
     std::ifstream header_file;
-    std::vector<std::string> vec_header;
+    std::vector<std::string> m_vec_header;
 
     boost::mutex m_mutex; // thread locking
     boost::mt19937 m_rng;
@@ -97,18 +97,18 @@ class Schedule : public Course
 namespace
 {
 
-// permutation and evaluation
-const int AVOID_MUL    = 1;
-const int INSTR_MUL    = 1;
-const int ROOM_MUL     = 1; 
+  // permutation and evaluation
+  const int AVOID_MUL    = 1;
+  const int INSTR_MUL    = 1;
+  const int ROOM_MUL     = 1;
 
-const double PB_RMUT   =   0.95; 
-const double PB_TMUT   =   0.5; 
+  const double PB_RMUT   =   0.95;
+  const double PB_TMUT   =   0.5;
 
-const double ABS_TEMP    = 1.0e-6;
-const double INIT_TEMP   = 1.0e+5;
-const double COOL_RATE   = 0.999;
-const double DELTA_SCALE = 1.0e-13;
+  const double ABS_TEMP    = 1.0e-6;
+  const double INIT_TEMP   = 1.0e+5;
+  const double COOL_RATE   = 0.999;
+  const double DELTA_SCALE = 1.0e-13;
 
 }
 

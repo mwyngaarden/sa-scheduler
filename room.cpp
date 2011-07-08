@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -36,7 +36,7 @@ Room::Room()
 
   int  line;
   string read_str;
-  uint64_t flag;
+  uint32_t flag;
   
   ostringstream oss;
   Debug debug;
@@ -88,7 +88,7 @@ Room::Room()
       continue;
     }
 
-    if (make_upper(get_token(read_str, 2, ",")) != "L" && 
+    if (make_upper(get_token(read_str, 2, ",")) != "L" &&
         make_upper(get_token(read_str, 2, ",")) != "S") {
       oss << "Invalid room entry at line " << line
           << ": invalid room type, use S/L)";

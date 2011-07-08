@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -41,16 +41,16 @@ Course::Course() : Bias(), Room()
   string read_str;
   string str;
   string str_util;
-  uint64_t flag;
-
+  uint32_t flag;
+  
   string avoid;
   string instr;
   string room_type;
-
   course_t course;
+  
   stringstream oss;
   Debug debug;
-
+  
   course_file.open("courses.csv");
 
   if (!course_file.is_open()) {
@@ -166,7 +166,7 @@ Course::Course() : Bias(), Room()
       flag |= COURSE_LECTS;
     }
 
-    if ((COURSE_ID|COURSE_NAME) & ~flag || 
+    if ((COURSE_ID|COURSE_NAME) & ~flag ||
         (COURSE_TYPE & flag && room_type != "L" && room_type != "S")) {
       oss << "Invalid course description at line " << line
           << ": invalid course name, ID, or class type";
@@ -178,7 +178,7 @@ Course::Course() : Bias(), Room()
     course.is_lab     = room_type      == "S" ? false : true;
     course.const_room = course.room_id ==  "" ? false : true;
 
-    for (i = 0; i < token_count(avoid, ":"); i++) { 
+    for (i = 0; i < token_count(avoid, ":"); i++) {
       course.vec_avoid.push_back(get_token(avoid, i, ":"));
     }
 
@@ -228,7 +228,6 @@ bool Course::push_course(course_t &course)
   double k;
   int i;
   uint64_t bs;
-
   map<string, room_t>::iterator begin_it;
   map<string, room_t>::iterator end_it;
   map<string, room_t>::iterator it;
@@ -253,9 +252,9 @@ bool Course::push_course(course_t &course)
     }
 
   } else if (course.hours == 3 && course.lectures == 3) {
-     for (i = 9; i < 15; i++) {
-       course.vec_avail_times.push_back(rand_sched[3][i]);
-     }
+    for (i = 9; i < 15; i++) {
+      course.vec_avail_times.push_back(rand_sched[3][i]);
+    }
 
   } else if (course.const_time && course.const_days) {
     course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.days));
@@ -265,18 +264,19 @@ bool Course::push_course(course_t &course)
       for (k = options[OPT_CLABSTIME]; k + course.hours <= options[OPT_CLABETIME]; k += 0.5) {
         bs = make_bitsched(k, k + course.hours, 2 << i);
 
-      if (!(course.const_time && (make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME) && // dummy day
-          !(course.const_days && (make_bitsched( 12.0, 13.0, course.days) ^ bs) & MASK_DAY)) { // dummy time
+        if (!(course.const_time && (make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME) && // dummy day
+            !(course.const_days && (make_bitsched( 12.0, 13.0, course.days) ^ bs) & MASK_DAY)) { // dummy time
           course.vec_avail_times.push_back(bs);
+        }
       }
-    }
 
   } else if (course.const_time) {
-     bs = make_bitsched(course.start_time, course.end_time, 2); // dummy day
-     for (i = 0; i < randsched_idx[course.hours]; i++)
-       if (!((rand_sched[course.hours][i] ^ bs) & MASK_TIME)) {
-         course.vec_avail_times.push_back(rand_sched[course.hours][i]);
-       }
+    bs = make_bitsched(course.start_time, course.end_time, 2); // dummy day
+
+    for (i = 0; i < randsched_idx[course.hours]; i++)
+      if (!((rand_sched[course.hours][i] ^ bs) & MASK_TIME)) {
+        course.vec_avail_times.push_back(rand_sched[course.hours][i]);
+      }
 
   } else if (course.const_days) {
     for (i = 0; i < randsched_idx[course.hours]; i++)

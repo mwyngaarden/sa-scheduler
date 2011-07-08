@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -106,9 +106,9 @@ bool proom_sort(const room_pfit_t &lhs, const room_pfit_t &rhs)
   return lhs.weight < rhs.weight;
 }
 
-uint64_t day_to_flag(const std::string &day)
+uint32_t day_to_flag(const std::string &day)
 {
- return static_cast<uint64_t>(1Ui64 << day_to_int(day));
+  return 1 << day_to_int(day);
 }
 
 int day_to_int(const std::string &day)

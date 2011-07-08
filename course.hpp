@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -45,19 +45,19 @@ class Course : public Bias, public Room
 
 namespace
 {
-const int COURSE_TOKENS = 12;
-const uint64_t COURSE_AVOID = 1 <<  0;
-const uint64_t COURSE_DAYS  = 1 <<  1;
-const uint64_t COURSE_GROUP = 1 <<  2;
-const uint64_t COURSE_HOURS = 1 <<  3;
-const uint64_t COURSE_ID    = 1 <<  4;
-const uint64_t COURSE_INSTR = 1 <<  5;
-const uint64_t COURSE_LECTS = 1 <<  6;
-const uint64_t COURSE_NAME  = 1 <<  7;
-const uint64_t COURSE_ROOM  = 1 <<  8;
-const uint64_t COURSE_SIZE  = 1 <<  9;
-const uint64_t COURSE_TIMES = 1 << 10;
-const uint64_t COURSE_TYPE  = 1 << 11;
+  const int COURSE_TOKENS = 12;
+  const uint32_t COURSE_AVOID = 1 <<  0;
+  const uint32_t COURSE_DAYS  = 1 <<  1;
+  const uint32_t COURSE_GROUP = 1 <<  2;
+  const uint32_t COURSE_HOURS = 1 <<  3;
+  const uint32_t COURSE_ID    = 1 <<  4;
+  const uint32_t COURSE_INSTR = 1 <<  5;
+  const uint32_t COURSE_LECTS = 1 <<  6;
+  const uint32_t COURSE_NAME  = 1 <<  7;
+  const uint32_t COURSE_ROOM  = 1 <<  8;
+  const uint32_t COURSE_SIZE  = 1 <<  9;
+  const uint32_t COURSE_TIMES = 1 << 10;
+  const uint32_t COURSE_TYPE  = 1 << 11;
 }
 
 #endif // !defined(COURSE_HPP)

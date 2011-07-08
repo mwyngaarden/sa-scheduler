@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -34,18 +34,18 @@ class Bias
     Bias();
 
     int get_bias(const std::string &instr, uint64_t bit_sched);
-                 
+
     int get_bias(
-      const std::string &instr, 
-      double start_time, 
+      const std::string &instr,
+      double start_time,
       double end_time,
-      uint64_t days);
+      uint32_t days);
 
     void set_bias(
-      const std::string &instr, 
-      double start_time, 
+      const std::string &instr,
+      double start_time,
       double end_time,
-      uint64_t days, 
+      uint32_t days,
       e_bias bias);
 
   private:

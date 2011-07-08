@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -37,21 +37,20 @@ Bias::Bias()
 
   e_bias bias;
   int i, line;
-  uint64_t days;
-  uint64_t flag;
-
+  uint32_t days;
+  uint32_t flag;
+  
   double end_time;
   double start_time;
   string instr;
   string read_str;
   string str;
-
+  
   ostringstream oss;
   size_t found;
   string valid_status = "AVR6AVR5AVR4AVR3AVR2AVR1OPENPRF1PRF2PRF3PRF4PRF5PRF6VOID";
-
   Debug debug;
-
+  
   bias_file.open("bias.csv");
 
   if (!bias_file.is_open()) {
@@ -106,8 +105,8 @@ Bias::Bias()
       days = str == "ALL" ? 127 : day_to_flag(str);
       str = make_upper(get_token(get_token(read_str, i, ","), 2, ":"));
 
-      if (str != "ALL" && 
-          (token_count(str, "-") != 2 || get_token(str, 0, "-") == "" || 
+      if (str != "ALL" &&
+          (token_count(str, "-") != 2 || get_token(str, 0, "-") == "" ||
            get_token(str, 1, "-") == "")) {
         oss << "Invalid schedule descriptor at line " << line
             << ": invalid time";
@@ -143,7 +142,8 @@ Bias::Bias()
 int Bias::get_bias(
   const string &instr,
   double start_time,
-  double end_time, uint64_t days)
+  double end_time,
+  uint32_t days)
 {
   assert(instr != "");
   assert(start_time >= 0.0);
@@ -185,10 +185,9 @@ int Bias::get_bias(const string &instr, uint64_t bit_sched)
     return 0;
   }
 
-  uint64_t days     = bit_sched >> 56;
+  uint32_t days     = bit_sched >> 56;
   bit_sched         = (bit_sched & MASK_TIME) >> 16;
   double start_time = 8 + 0.5 * POPCNT(~bit_sched & bit_sched - 1);
-
   return get_bias(instr, start_time, start_time + POPCNT(bit_sched) * 0.5, days);
 }
 
@@ -196,7 +195,7 @@ void Bias::set_bias(
   const string &instr,
   double start_time,
   double end_time,
-  uint64_t days,
+  uint32_t days,
   e_bias bias)
 {
   assert(instr != "");

@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -55,7 +55,8 @@ void Debug::live_or_die()
   debug_log.close();
 }
 
-void Debug::push_error(std::string str) {
+void Debug::push_error(std::string str)
+{
   time_t rawtime;
   time(&rawtime);
   std::string push_str = asctime(localtime(&rawtime));
@@ -63,7 +64,8 @@ void Debug::push_error(std::string str) {
   m_vec_errors.push_back(push_str);
 };
 
-void Debug::push_warning(std::string str) {
+void Debug::push_warning(std::string str)
+{
   time_t rawtime;
   time(&rawtime);
   std::string push_str = asctime(localtime(&rawtime));

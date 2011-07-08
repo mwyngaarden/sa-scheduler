@@ -1,4 +1,4 @@
-/*    
+/*
  *    SACS, a Simulated Annealing Class Scheduler
  *    Copyright (C) 2011  Martin Wyngaarden
  *
@@ -68,7 +68,8 @@ struct room_t {
   int size;
 };
 
-class health_t {
+class health_t
+{
   public:
     void reset() {
       avoid_colls  = 0;
@@ -78,7 +79,6 @@ class health_t {
       instr_colls  = 0;
       late_penalty = 0;
       room_colls   = 0;
-
       ffit         = 0;
     };
 
@@ -90,7 +90,6 @@ class health_t {
       instr_colls  =  INF;
       late_penalty =  INF;
       room_colls   =  INF;
-
       ffit         = 0x7fffffffffffffffUi64;
     };
 
@@ -112,7 +111,7 @@ class course_t
       const_days   = false;
       const_room   = false;
       const_time   = false;
-      days         = 0;  // uint64_t
+      days         = 0;
       end_time     = 0.0;
       group        = "";
       hours        = 0;
@@ -124,9 +123,7 @@ class course_t
       rsrv_blks    = 0;  // uint64_t
       size         = 0;
       start_time   = 0.0;
-
       health.init();
-
       vec_avail_times.clear();
       vec_avoid.clear();
       vec_instr.clear();
@@ -151,7 +148,7 @@ class course_t
     std::vector<std::string> vec_avoid;
     std::vector<std::string> vec_instr;
     std::vector<room_t> vec_prooms;
-    uint64_t days;
+    uint32_t days;
     uint64_t rsrv_blks;
 };
 
@@ -300,13 +297,13 @@ std::string get_token     (const std::string &str, int n, std::string delim);
 std::string make_upper    (const std::string &str);
 std::string break_instr   (const std::vector<std::string> &vec_instr);
 
-uint64_t day_to_flag      (const std::string &day);
+uint32_t day_to_flag      (const std::string &day);
 int day_to_int            (const std::string &day);
 
 extern int options[OPT_TOTOPTS];
 extern std::vector<std::vector<int> > vec_bitpos_idx;
 
-inline int cpu_max_threads() 
+inline int cpu_max_threads()
 {
   int CPUInfo[4] = {-1};
   __cpuid(CPUInfo, 0x00000001Ui32);
@@ -320,7 +317,7 @@ inline bool cpu_has_popcnt()
   return CPUInfo[2] >> 23 & 0x00000001Ui32;
 }
 
-inline uint64_t make_bitsched(double start_time, double end_time, uint64_t days)
+inline uint64_t make_bitsched(double start_time, double end_time, uint32_t days)
 {
   assert(start_time >= 8.0);
   assert(start_time < 21.0);
@@ -328,8 +325,7 @@ inline uint64_t make_bitsched(double start_time, double end_time, uint64_t days)
   assert(end_time <= 21.0);
   assert(!(0xc1 & days));
   assert(0x3e & days);
-
-  uint64_t bit_sched = days << 56;
+  uint64_t bit_sched = static_cast<uint64_t>(days) << 56;
 
   for (int i = static_cast<int>(2 * start_time); i < static_cast<int>(2 * end_time); i++) {
     bit_sched |= 1Ui64 << i;
@@ -354,7 +350,7 @@ inline int POPCNT(uint64_t v)
 inline double rand_unitintvl(boost::mt19937 &my_rng)
 {
   return my_rng() / 4294967296.0;
-}  
+}
 
 inline double mean(const std::vector<double> &n)
 {
@@ -381,11 +377,10 @@ inline double stdevp(const std::vector<double> &n, const double mean)
 // TODO: fix bias scoring
 inline uint64_t get_score(const health_t &health)
 {
-  uint64_t score = static_cast<uint64_t>(health.fitness)      << 54 
-                 | static_cast<uint64_t>(health.bias_fitness) << 40
-                 | static_cast<uint64_t>(health.late_penalty) << 10
-                 | static_cast<uint64_t>(health.buf_fitness)  <<  0;
-
+  uint64_t score = static_cast<uint64_t>(health.fitness)      << 54
+                   | static_cast<uint64_t>(health.bias_fitness) << 40
+                   | static_cast<uint64_t>(health.late_penalty) << 10
+                   | static_cast<uint64_t>(health.buf_fitness)  <<  0;
   return score;
 }
 
