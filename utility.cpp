@@ -26,13 +26,30 @@ using namespace std;
 
 int options[OPT_TOTOPTS];
 vector<vector<int> > vec_bitpos_idx;
+vector<vector<bs_t> > sched_bs_idx;
 
 void util_init()
 {
+  int i, j, k;
+  string str;
+
+  sched_bs_idx.resize(6);
+
+  for (i = 0; i < 6; i++) {
+    for (j = 0; j < sched_count_idx[i]; j++) {
+      for (k = 0, str = ""; k < 16; k++) {
+        str += hex_to_bin(sched_hex_idx[i][j][k]);
+      }
+
+      bs_t bs(str);
+      sched_bs_idx[i].push_back(bs);
+    }
+  }
+
   vec_bitpos_idx.resize(128);
 
-  for (int i = 0; i < 128; i++)  {
-    for (int j = 0; j < 7; j++) {
+  for (i = 0; i < 128; i++)  {
+    for (j = 0; j < 7; j++) {
       if (i & 1 << j) {
         vec_bitpos_idx[i].push_back(48 * j);
       }
@@ -106,7 +123,7 @@ bool proom_sort(const room_pfit_t &lhs, const room_pfit_t &rhs)
   return lhs.weight < rhs.weight;
 }
 
-uint32_t day_to_flag(const std::string &day)
+uint8_t day_to_flag(const std::string &day)
 {
   return 1 << day_to_int(day);
 }
@@ -114,4 +131,43 @@ uint32_t day_to_flag(const std::string &day)
 int day_to_int(const std::string &day)
 {
   return static_cast<int>(VALID_DAYS.find(day) / 3);
+}
+
+string hex_to_bin(char hex)
+{
+  assert((hex >= '0' && hex <= '9') || (hex >= 'a' && hex <= 'f'));
+
+  if (hex == '0') {
+    return "0000";
+  } else if (hex == '1') {
+    return "0001";
+  } else if (hex == '2') {
+    return "0010";
+  } else if (hex == '3') {
+    return "0011";
+  } else if (hex == '4') {
+    return "0100";
+  } else if (hex == '5') {
+    return "0101";
+  } else if (hex == '6') {
+    return "0110";
+  } else if (hex == '7') {
+    return "0111";
+  } else if (hex == '8') {
+    return "1000";
+  } else if (hex == '9') {
+    return "1001";
+  } else if (hex == 'a') {
+    return "1010";
+  } else if (hex == 'b') {
+    return "1011";
+  } else if (hex == 'c') {
+    return "1100";
+  } else if (hex == 'd') {
+    return "1101";
+  } else if (hex == 'e') {
+    return "1110";
+  } else {
+    return "1111";
+  } 
 }

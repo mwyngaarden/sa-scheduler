@@ -33,19 +33,19 @@ class Bias
   public:
     Bias();
 
-    int get_bias(const std::string &instr, uint64_t bit_sched);
+    int get_bias(const std::string &instr, bs_t bs);
 
     int get_bias(
       const std::string &instr,
       double start_time,
       double end_time,
-      uint32_t days);
+      uint8_t days);
 
     void set_bias(
       const std::string &instr,
       double start_time,
       double end_time,
-      uint32_t days,
+      uint8_t days,
       e_bias bias);
 
   private:

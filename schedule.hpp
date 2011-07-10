@@ -40,9 +40,9 @@ class Schedule : public Course
     void get_bitsched(
       course_t                        &course,
       std::map<std::string, course_t> &crs_name_idx,
-      std::map<std::string, uint64_t> &u_crs_idx,
-      std::map<std::string, uint64_t> &u_instr_idx,
-      std::map<std::string, uint64_t> &u_room_idx,
+      std::map<std::string, bs_t>     &u_crs_idx,
+      std::map<std::string, bs_t>     &u_instr_idx,
+      std::map<std::string, bs_t>     &u_room_idx,
       boost::mt19937                  &my_rng);
 
     int get_duration();
@@ -71,7 +71,12 @@ class Schedule : public Course
         } m_week_idx[336];
     };
 
-    int num_conflicts     (uint64_t bs);
+    inline int num_conflicts(const bs_t &bs) 
+    {
+      assert((bs & VALID_MASK).none());
+      return static_cast<int>((bs & MASK_DAY).count() * (bs & MASK_TIME).count());
+    };
+        
     void display_stats    (const state_t &state, int iter);
     void save_scheds      (const state_t &best_state);
     void write_html       (std::ofstream &file, std::map<std::string, Week> &mapstr_cal);
@@ -96,7 +101,6 @@ class Schedule : public Course
 
 namespace
 {
-
   // permutation and evaluation
   const int AVOID_MUL    = 1;
   const int INSTR_MUL    = 1;
@@ -105,11 +109,9 @@ namespace
   const double PB_RMUT   =   0.95;
   const double PB_TMUT   =   0.5;
 
-  const double ABS_TEMP    = 1.0e-6;
-  const double INIT_TEMP   = 1.0e+5;
-  const double COOL_RATE   = 0.999;
-  const double DELTA_SCALE = 1.0e-13;
-
+  const double ABS_TEMP    = 1.0e-4;
+  const double INIT_TEMP   = 1.0e+6;
+  const double COOL_RATE   = 0.9999;
 }
 
 #endif // !defined(SCHEDULE_HPP)

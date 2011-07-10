@@ -37,7 +37,7 @@ Bias::Bias()
 
   e_bias bias;
   int i, line;
-  uint32_t days;
+  uint8_t days;
   uint32_t flag;
   
   double end_time;
@@ -51,10 +51,11 @@ Bias::Bias()
   string valid_status = "AVR6AVR5AVR4AVR3AVR2AVR1OPENPRF1PRF2PRF3PRF4PRF5PRF6VOID";
   Debug debug;
   
-  bias_file.open("bias.csv");
+  bias_file.open(FILE_BIAS);
 
   if (!bias_file.is_open()) {
-    debug.push_error("Unable to open bias.csv");
+    str = "Unable to open " + FILE_BIAS;
+    debug.push_error(str);
   }
 
   debug.live_or_die();
@@ -143,7 +144,7 @@ int Bias::get_bias(
   const string &instr,
   double start_time,
   double end_time,
-  uint32_t days)
+  uint8_t days)
 {
   assert(instr != "");
   assert(start_time >= 0.0);
@@ -158,11 +159,13 @@ int Bias::get_bias(
   }
 
   e_bias bias;
+  int idx;
   int level = 0;
 
   for (int i = 0; i < vec_bitpos_idx[days].size(); i++)
     for (int j = 0; j < 2 * (end_time - start_time); j++) {
-      bias = m_mapstr_bias[instr][static_cast<int>(vec_bitpos_idx[days][i] + 2 * start_time + j)];
+      idx = static_cast<int>(vec_bitpos_idx[days][i] + 2 * start_time + j);
+      bias = m_mapstr_bias[instr][idx];
 
       if (bias == VOID) {
         return SCORE_VOID;
@@ -174,28 +177,32 @@ int Bias::get_bias(
   return level;
 }
 
-int Bias::get_bias(const string &instr, uint64_t bit_sched)
+int Bias::get_bias(const string &instr, bs_t bs)
 {
   assert(instr != "");
-  assert(bit_sched & MASK_DAY);
-  assert(bit_sched & MASK_TIME);
-  assert(!(bit_sched & VALID_MASK));
+  assert((bs & MASK_DAY).any());
+  assert((bs & MASK_TIME).any());
+  assert((bs & VALID_MASK).none());
 
   if (m_mapstr_bias.find(instr) == m_mapstr_bias.end()) {
     return 0;
   }
 
-  uint32_t days     = bit_sched >> 56;
-  bit_sched         = (bit_sched & MASK_TIME) >> 16;
-  double start_time = 8 + 0.5 * POPCNT(~bit_sched & bit_sched - 1);
-  return get_bias(instr, start_time, start_time + POPCNT(bit_sched) * 0.5, days);
+  uint8_t days;
+  double start_time;
+
+  days       = static_cast<uint8_t>((bs >> 56).to_ulong());
+  bs         = (bs & MASK_TIME) >> 16;
+  start_time = 8 + 0.5 * get_firstbitpos(bs);
+
+  return get_bias(instr, start_time, start_time + bs.count() * 0.5, days);
 }
 
 void Bias::set_bias(
   const string &instr,
   double start_time,
   double end_time,
-  uint32_t days,
+  uint8_t days,
   e_bias bias)
 {
   assert(instr != "");
@@ -206,12 +213,15 @@ void Bias::set_bias(
   assert(days > 0);
   assert(days < 128);
 
+  int idx;
+
   if (m_mapstr_bias.find(instr) == m_mapstr_bias.end()) {
     m_mapstr_bias[instr].resize(336, OPEN);
   }
 
   for (int i = 0; i < vec_bitpos_idx[days].size(); i++)
     for (int j = 0; j < 2 * (end_time - start_time); j++) {
-      m_mapstr_bias[instr][static_cast<int>(vec_bitpos_idx[days][i] + 2 * start_time + j)] = bias;
+      idx = static_cast<int>(vec_bitpos_idx[days][i] + 2 * start_time + j);
+      m_mapstr_bias[instr][idx] = bias;
     }
 }

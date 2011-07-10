@@ -51,10 +51,11 @@ Course::Course() : Bias(), Room()
   stringstream oss;
   Debug debug;
   
-  course_file.open("courses.csv");
+  course_file.open(FILE_COURSE);
 
   if (!course_file.is_open()) {
-    debug.push_error("Unable to open courses.csv");
+    str = "Unable to open " + FILE_COURSE;
+    debug.push_error(str);
   }
 
   debug.live_or_die();
@@ -227,7 +228,7 @@ bool Course::push_course(course_t &course)
 
   double k;
   int i;
-  uint64_t bs;
+  bs_t bs;
   map<string, room_t>::iterator begin_it;
   map<string, room_t>::iterator end_it;
   map<string, room_t>::iterator it;
@@ -248,12 +249,12 @@ bool Course::push_course(course_t &course)
 
   if (course.hours == 3 && course.lectures == 2) {
     for (i = 0; i < 9; i++) {
-      course.vec_avail_times.push_back(rand_sched[3][i]);
+      course.vec_avail_times.push_back(sched_bs_idx[3][i]);
     }
 
   } else if (course.hours == 3 && course.lectures == 3) {
     for (i = 9; i < 15; i++) {
-      course.vec_avail_times.push_back(rand_sched[3][i]);
+      course.vec_avail_times.push_back(sched_bs_idx[3][i]);
     }
 
   } else if (course.const_time && course.const_days) {
@@ -264,8 +265,8 @@ bool Course::push_course(course_t &course)
       for (k = options[OPT_CLABSTIME]; k + course.hours <= options[OPT_CLABETIME]; k += 0.5) {
         bs = make_bitsched(k, k + course.hours, 2 << i);
 
-        if (!(course.const_time && (make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME) && // dummy day
-            !(course.const_days && (make_bitsched( 12.0, 13.0, course.days) ^ bs) & MASK_DAY)) { // dummy time
+        if (!(course.const_time && ((make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME).any()) && // dummy day
+            !(course.const_days && ((make_bitsched(12.0, 13.0, course.days) ^ bs) & MASK_DAY).any())) { // dummy time
           course.vec_avail_times.push_back(bs);
         }
       }
@@ -273,20 +274,20 @@ bool Course::push_course(course_t &course)
   } else if (course.const_time) {
     bs = make_bitsched(course.start_time, course.end_time, 2); // dummy day
 
-    for (i = 0; i < randsched_idx[course.hours]; i++)
-      if (!((rand_sched[course.hours][i] ^ bs) & MASK_TIME)) {
-        course.vec_avail_times.push_back(rand_sched[course.hours][i]);
+    for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
+      if (((sched_bs_idx[course.hours][i] ^ bs) & MASK_TIME).none()) {
+        course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
       }
 
   } else if (course.const_days) {
-    for (i = 0; i < randsched_idx[course.hours]; i++)
-      if (!(rand_sched[course.hours][i] >> 56 ^ course.days)) {
-        course.vec_avail_times.push_back(rand_sched[course.hours][i]);
+    for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
+      if ((sched_bs_idx[course.hours][i] >> 56 ^ static_cast<bs_t>(course.days)).none()) {
+        course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
       }
 
   } else {
-    for (i = 0; i < randsched_idx[course.hours]; i++) {
-      course.vec_avail_times.push_back(rand_sched[course.hours][i]);
+    for (i = 0; i < sched_bs_idx[course.hours].size(); i++) {
+      course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
     }
   }
 

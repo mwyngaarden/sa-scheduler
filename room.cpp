@@ -41,10 +41,11 @@ Room::Room()
   ostringstream oss;
   Debug debug;
   
-  room_file.open("rooms.csv");
+  room_file.open(FILE_ROOM);
 
   if (!room_file.is_open()) {
-    debug.push_error("Unable to open rooms.csv");
+    read_str ="Unable to open " + FILE_ROOM;
+    debug.push_error(read_str);
   }
 
   debug.live_or_die();

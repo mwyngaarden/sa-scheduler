@@ -20,9 +20,9 @@
 #if !defined(UTILITY_HPP)
 #define UTILITY_HPP
 
+#include <bitset>
 #include <cassert>
 #include <cmath>
-#include <intrin.h>
 #include <map>
 #include <stdint.h>
 #include <string>
@@ -30,17 +30,22 @@
 #include <boost/random/mersenne_twister.hpp>
 
 
-const uint64_t MASK_DAY   = 0x3e00000000000000Ui64;
-const uint64_t MASK_TIME  = 0x000003ffffff0000Ui64;
-const uint64_t VALID_MASK = ~(MASK_DAY|MASK_TIME);
+typedef std::bitset<64> bs_t;
+const bs_t MASK_DAY   ("0011111000000000000000000000000000000000000000000000000000000000");
+const bs_t MASK_TIME  ("0000000000000000000000111111111111111111111111110000000000000000");
+const bs_t VALID_MASK ("1100000111111111111111000000000000000000000000001111111111111111");
 
 const std::string COMPILE_TIME = __TIME__;
 const std::string COMPILE_DATE = __DATE__;
 
+const std::string FILE_BIAS   = "bias.csv";
+const std::string FILE_COURSE = "courses.csv";
+const std::string FILE_ROOM   = "rooms.csv";
+const std::string FILE_HTML   = "html_header.txt";
+
 const std::string VALID_DAYS = "SUNMONTUEWEDTHUFRISATALL";
 
-// TODO: duh!
-const int SCORE_VOID = 1;
+const int SCORE_VOID = -100000;
 const int INF = 0x7fffffff;
 
 enum e_bias {
@@ -54,7 +59,6 @@ enum e_opts {
   OPT_CLABETIME,
   OPT_CLABSTIME,
   OPT_CONTIGLABS,
-  OPT_HASPOPCNT,
   OPT_POLLINTVL,
   OPT_ROOMBUFF,
   OPT_SYNCINTVL,
@@ -74,7 +78,7 @@ class health_t
     void reset() {
       avoid_colls  = 0;
       bias_fitness = 0;
-      buf_fitness = 0;
+      buf_fitness  = 0;
       fitness      = 0;
       instr_colls  = 0;
       late_penalty = 0;
@@ -85,12 +89,12 @@ class health_t
     void init() {
       avoid_colls  =  INF;
       bias_fitness = -INF;
-      buf_fitness =  INF;
+      buf_fitness  =  INF;
       fitness      =  INF;
       instr_colls  =  INF;
       late_penalty =  INF;
       room_colls   =  INF;
-      ffit         = 0x7fffffffffffffffUi64;
+      ffit         =  INF;
     };
 
     int avoid_colls;
@@ -100,8 +104,7 @@ class health_t
     int instr_colls;
     int late_penalty;
     int room_colls;
-
-    int64_t ffit;
+    double ffit;
 };
 
 class course_t
@@ -120,9 +123,9 @@ class course_t
       lectures     = 0;
       name         = "";
       room_id      = "";
-      rsrv_blks    = 0;  // uint64_t
       size         = 0;
       start_time   = 0.0;
+      bs_sched.reset();
       health.init();
       vec_avail_times.clear();
       vec_avoid.clear();
@@ -140,16 +143,16 @@ class course_t
     int hours;
     int lectures;
     int size;
+    std::bitset<64> bs_sched;
     std::string group;
     std::string id;
     std::string name;
     std::string room_id;
-    std::vector<uint64_t> vec_avail_times;
+    std::vector<bs_t> vec_avail_times;
     std::vector<std::string> vec_avoid;
     std::vector<std::string> vec_instr;
     std::vector<room_t> vec_prooms;
-    uint32_t days;
-    uint64_t rsrv_blks;
+    uint8_t days;
 };
 
 struct state_t {
@@ -159,7 +162,7 @@ struct state_t {
 
 struct pfit_t {
   health_t health;
-  uint64_t bs;
+  bs_t bs;
 };
 
 struct room_pfit_t {
@@ -167,121 +170,121 @@ struct room_pfit_t {
   int weight;
 };
 
-const int randsched_idx[6] = { 0, 25, 20, 15, 35, 7 };
-const uint64_t rand_sched[6][35] = {
+const int sched_count_idx[6] = { 0, 25, 20, 15, 35, 7 };
+const std::string sched_hex_idx[6][35] = {
   {},
   {
-    0x0200000003000000Ui64, //M
-    0x020000000c000000Ui64,
-    0x0200000030000000Ui64,
-    0x02000000c0000000Ui64,
-    0x0200000300000000Ui64,
-    0x0400000003000000Ui64, //T
-    0x040000000c000000Ui64,
-    0x0400000030000000Ui64,
-    0x04000000c0000000Ui64,
-    0x0400000300000000Ui64,
-    0x0800000003000000Ui64, //W
-    0x080000000c000000Ui64,
-    0x0800000030000000Ui64,
-    0x08000000c0000000Ui64,
-    0x0800000300000000Ui64,
-    0x1000000003000000Ui64, //T
-    0x100000000c000000Ui64,
-    0x1000000030000000Ui64,
-    0x10000000c0000000Ui64,
-    0x1000000300000000Ui64,
-    0x2000000003000000Ui64, //F
-    0x200000000c000000Ui64,
-    0x2000000030000000Ui64,
-    0x20000000c0000000Ui64,
-    0x2000000300000000Ui64
+    "0200000003000000", //M
+    "020000000c000000",
+    "0200000030000000",
+    "02000000c0000000",
+    "0200000300000000",
+    "0400000003000000", //T
+    "040000000c000000",
+    "0400000030000000",
+    "04000000c0000000",
+    "0400000300000000",
+    "0800000003000000", //W
+    "080000000c000000",
+    "0800000030000000",
+    "08000000c0000000",
+    "0800000300000000",
+    "1000000003000000", //T
+    "100000000c000000",
+    "1000000030000000",
+    "10000000c0000000",
+    "1000000300000000",
+    "2000000003000000", //F
+    "200000000c000000",
+    "2000000030000000",
+    "20000000c0000000",
+    "2000000300000000"
   },
   {
-    0x1400000003000000Ui64, //TT
-    0x140000000c000000Ui64,
-    0x1400000030000000Ui64,
-    0x14000000c0000000Ui64,
-    0x1400000300000000Ui64,
-    0x2200000003000000Ui64, //MF
-    0x220000000c000000Ui64,
-    0x2200000030000000Ui64,
-    0x22000000c0000000Ui64,
-    0x2200000300000000Ui64,
-    0x0a00000003000000Ui64, //MW
-    0x0a0000000c000000Ui64,
-    0x0a00000030000000Ui64,
-    0x0a000000c0000000Ui64,
-    0x0a00000300000000Ui64,
-    0x2800000003000000Ui64, //WF
-    0x280000000c000000Ui64,
-    0x2800000030000000Ui64,
-    0x28000000c0000000Ui64,
-    0x2800000300000000Ui64
+    "1400000003000000", //TT
+    "140000000c000000",
+    "1400000030000000",
+    "14000000c0000000",
+    "1400000300000000",
+    "2200000003000000", //MF
+    "220000000c000000",
+    "2200000030000000",
+    "22000000c0000000",
+    "2200000300000000",
+    "0a00000003000000", //MW
+    "0a0000000c000000",
+    "0a00000030000000",
+    "0a000000c0000000",
+    "0a00000300000000",
+    "2800000003000000", //WF
+    "280000000c000000",
+    "2800000030000000",
+    "28000000c0000000",
+    "2800000300000000"
   },
   {
-    0x1400000000070000Ui64, //TT
-    0x1400000000380000Ui64,
-    0x1400000001c00000Ui64,
-    0x140000000e000000Ui64,
-    0x1400000070000000Ui64,
-    0x1400000380000000Ui64,
-    0x2a00000000030000Ui64, //MWF
-    0x2a000000000c0000Ui64,
-    0x2a00000000300000Ui64,
-    0x2a00000000c00000Ui64,
-    0x2a00000003000000Ui64,
-    0x2a0000000c000000Ui64,
-    0x2a00000030000000Ui64,
-    0x2a000000c0000000Ui64,
-    0x2a00000300000000Ui64,
-    0x2a00000c00000000Ui64
+    "1400000000070000", //TT
+    "1400000000380000",
+    "1400000001c00000",
+    "140000000e000000",
+    "1400000070000000",
+    "1400000380000000",
+    "2a00000000030000", //MWF
+    "2a000000000c0000",
+    "2a00000000300000",
+    "2a00000000c00000",
+    "2a00000003000000",
+    "2a0000000c000000",
+    "2a00000030000000",
+    "2a000000c0000000",
+    "2a00000300000000",
+    "2a00000c00000000"
   },
   {
-    0x1e00000000030000Ui64, //MTWT
-    0x1e00000000300000Ui64,
-    0x1e00000000c00000Ui64,
-    0x1e0000000c000000Ui64,
-    0x1e00000030000000Ui64,
-    0x1e000000c0000000Ui64,
-    0x1e00000300000000Ui64,
-    0x2e00000000030000Ui64, //MTWF
-    0x2e00000000300000Ui64,
-    0x2e00000000c00000Ui64,
-    0x2e0000000c000000Ui64,
-    0x2e00000030000000Ui64,
-    0x2e000000c0000000Ui64,
-    0x2e00000300000000Ui64,
-    0x3600000000030000Ui64, //MTTF
-    0x3600000000300000Ui64,
-    0x3600000000c00000Ui64,
-    0x360000000c000000Ui64,
-    0x3600000030000000Ui64,
-    0x36000000c0000000Ui64,
-    0x3600000300000000Ui64,
-    0x3a00000000030000Ui64, //MWTF
-    0x3a00000000300000Ui64,
-    0x3a00000000c00000Ui64,
-    0x3a0000000c000000Ui64,
-    0x3a00000030000000Ui64,
-    0x3a000000c0000000Ui64,
-    0x3a00000300000000Ui64,
-    0x3c00000000030000Ui64, //TWTF
-    0x3c00000000300000Ui64,
-    0x3c00000000c00000Ui64,
-    0x3c0000000c000000Ui64,
-    0x3c00000030000000Ui64,
-    0x3c000000c0000000Ui64,
-    0x3c00000300000000Ui64
+    "1e00000000030000", //MTWT
+    "1e00000000300000",
+    "1e00000000c00000",
+    "1e0000000c000000",
+    "1e00000030000000",
+    "1e000000c0000000",
+    "1e00000300000000",
+    "2e00000000030000", //MTWF
+    "2e00000000300000",
+    "2e00000000c00000",
+    "2e0000000c000000",
+    "2e00000030000000",
+    "2e000000c0000000",
+    "2e00000300000000",
+    "3600000000030000", //MTTF
+    "3600000000300000",
+    "3600000000c00000",
+    "360000000c000000",
+    "3600000030000000",
+    "36000000c0000000",
+    "3600000300000000",
+    "3a00000000030000", //MWTF
+    "3a00000000300000",
+    "3a00000000c00000",
+    "3a0000000c000000",
+    "3a00000030000000",
+    "3a000000c0000000",
+    "3a00000300000000",
+    "3c00000000030000", //TWTF
+    "3c00000000300000",
+    "3c00000000c00000",
+    "3c0000000c000000",
+    "3c00000030000000",
+    "3c000000c0000000",
+    "3c00000300000000"
   },
   {
-    0x3e00000000030000Ui64, //MTWTF
-    0x3e00000000300000Ui64,
-    0x3e00000000c00000Ui64,
-    0x3e0000000c000000Ui64,
-    0x3e00000030000000Ui64,
-    0x3e000000c0000000Ui64,
-    0x3e00000300000000Ui64
+    "3e00000000030000", //MTWTF
+    "3e00000000300000",
+    "3e00000000c00000",
+    "3e0000000c000000",
+    "3e00000030000000",
+    "3e000000c0000000",
+    "3e00000300000000"
   }
 };
 
@@ -297,11 +300,13 @@ std::string get_token     (const std::string &str, int n, std::string delim);
 std::string make_upper    (const std::string &str);
 std::string break_instr   (const std::vector<std::string> &vec_instr);
 
-uint32_t day_to_flag      (const std::string &day);
+uint8_t day_to_flag       (const std::string &day);
 int day_to_int            (const std::string &day);
+std::string hex_to_bin    (char hex);
 
 extern int options[OPT_TOTOPTS];
 extern std::vector<std::vector<int> > vec_bitpos_idx;
+extern std::vector<std::vector<bs_t> > sched_bs_idx;
 
 inline int cpu_max_threads()
 {
@@ -310,14 +315,7 @@ inline int cpu_max_threads()
   return CPUInfo[0] >> 14 & 0x00000fffUi32;
 }
 
-inline bool cpu_has_popcnt()
-{
-  int CPUInfo[4] = {-1};
-  __cpuid(CPUInfo, 0x00000001Ui32);
-  return CPUInfo[2] >> 23 & 0x00000001Ui32;
-}
-
-inline uint64_t make_bitsched(double start_time, double end_time, uint32_t days)
+inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
 {
   assert(start_time >= 8.0);
   assert(start_time < 21.0);
@@ -325,31 +323,20 @@ inline uint64_t make_bitsched(double start_time, double end_time, uint32_t days)
   assert(end_time <= 21.0);
   assert(!(0xc1 & days));
   assert(0x3e & days);
-  uint64_t bit_sched = static_cast<uint64_t>(days) << 56;
+
+  bs_t bs(days);
+  bs <<= 56;
 
   for (int i = static_cast<int>(2 * start_time); i < static_cast<int>(2 * end_time); i++) {
-    bit_sched |= 1Ui64 << i;
+    bs.set(i, 1);
   }
 
-  return bit_sched;
+  return bs;
 };
-
-inline int POPCNT(uint64_t v)
-{
-  if (options[OPT_HASPOPCNT]) {
-    return static_cast<int>(__popcnt64(v));
-  }
-
-  v -= (v >> 1 & 0x5555555555555555Ui64);
-  v  = (v >> 2 & 0x3333333333333333Ui64) + (v & 0x3333333333333333Ui64);
-  v  = (v >> 4) + v & 0x0f0f0f0f0f0f0f0fUi64;
-  v  = v * 0x0101010101010101Ui64 >> 56;
-  return static_cast<int>(v);
-}
 
 inline double rand_unitintvl(boost::mt19937 &my_rng)
 {
-  return my_rng() / 4294967296.0;
+  return (my_rng() & 0x7fffffff) / 2147483648.0;
 }
 
 inline double mean(const std::vector<double> &n)
@@ -374,14 +361,28 @@ inline double stdevp(const std::vector<double> &n, const double mean)
   return sqrt(sum_sq / n.size());
 }
 
-// TODO: fix bias scoring
-inline uint64_t get_score(const health_t &health)
+inline double get_score(const health_t &health)
 {
-  uint64_t score = static_cast<uint64_t>(health.fitness)      << 54
-                   | static_cast<uint64_t>(health.bias_fitness) << 40
-                   | static_cast<uint64_t>(health.late_penalty) << 10
-                   | static_cast<uint64_t>(health.buf_fitness)  <<  0;
+  double score = 0.0;
+  
+  score += health.buf_fitness  * 1.0e-1;
+  score += health.late_penalty * 1.0e-6;
+  score += (1.0e+5 - health.bias_fitness) * 1.0e-2;
+  score += health.fitness      * 1.0e+9;
   return score;
+}
+
+inline int get_firstbitpos(const bs_t &bs)
+{
+  assert (bs.any());
+
+  for (int i = 0; i < 47; i++) {
+    if (bs[i]) { 
+      return i;
+    }
+  }
+
+  return 47;
 }
 
 #endif // !defined(UTILITY_HPP)

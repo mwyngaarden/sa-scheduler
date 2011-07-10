@@ -37,14 +37,13 @@ namespace po = boost::program_options;
 int main(int argc, char *argv[])
 {
   cout << endl
-       << "Advanced Scheduler by Martin Wyngaarden (mwyngaarden@lssu.edu)"
-       << endl << "CPU: POPCNT " << (cpu_has_popcnt() ? "" : "not ")
-       << "detected and " << cpu_max_threads() << " threads available" << endl
-       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME << endl
-       << endl;
+       << "SACS by Martin Wyngaarden (mwyngaarden@lssu.edu)" << endl 
+       << "CPU: threads = " << cpu_max_threads() << endl 
+       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME << endl << endl;
 
   try {
     string config_file;
+
     // command line only options
     po::options_description common("Command line options");
     common.add_options()
@@ -108,41 +107,20 @@ int main(int argc, char *argv[])
       return 0;
     }
 
-    options[OPT_HASPOPCNT] = cpu_has_popcnt();
-
     if (!options[OPT_THREADS]) {
       options[OPT_THREADS] = cpu_max_threads();
     }
 
     util_init();
-    //boost::mt19937 my_rng(time(NULL));
-    //ofstream stato("stato.csv");
-    //options[OPT_VERBOSE] = 0;
-    //int total = 0;
-    //int runs = 0;
     Schedule sched;
+
+    cout << endl << "Optimizing schedule..." << endl << endl;
+
     sched.optimize();
-    /*
 
-    for (int i = 0; i < 1; i++) {
 
-      //MY_DIV = 2.0 + (0.2 * i);
-
-      for (runs = 0, total = 0; runs < 400; runs++) {
-        int x = sched.optimize();
-        cout << i << ":" << runs << " " << x << endl;
-        total += x;
-      }
-
-      cout << double(total) / double(runs) << endl;
-
-    }
-
-    return 0;
-    */
     /*
     boost::thread_group threads;
-    cout << endl << "Optimizing schedule..." << endl << endl;
 
     for (int i = 0; i < options[OPT_THREADS]; i++) {
       threads.create_thread(boost::bind(&Schedule::optimize, &sched));
@@ -150,6 +128,7 @@ int main(int argc, char *argv[])
 
     threads.join_all();
     */
+
     cout << endl << "Optimization complete (" << sched.get_duration()
          << " seconds)" << endl << endl;
     system("pause");
