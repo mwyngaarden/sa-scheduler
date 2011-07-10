@@ -27,6 +27,7 @@ void Debug::live_or_die()
 {
   string str;
 
+
   if (m_vec_warnings.size() || m_vec_errors.size()) {
     debug_log.open("debug.log", ios::app);
 

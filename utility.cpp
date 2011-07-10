@@ -31,9 +31,11 @@ vector<vector<bs_t> > sched_bs_idx;
 void util_init()
 {
   int i, j, k;
+
   string str;
 
   sched_bs_idx.resize(6);
+
 
   for (i = 0; i < 6; i++) {
     for (j = 0; j < sched_count_idx[i]; j++) {

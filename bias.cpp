@@ -36,21 +36,27 @@ Bias::Bias()
   }
 
   e_bias bias;
+
   int i, line;
+
   uint8_t days;
   uint32_t flag;
   
   double end_time;
   double start_time;
+
   string instr;
   string read_str;
   string str;
-  
+  string valid_status = "AVR6AVR5AVR4AVR3AVR2AVR1OPENPRF1PRF2PRF3PRF4PRF5PRF6VOID"; 
+
   ostringstream oss;
+
   size_t found;
-  string valid_status = "AVR6AVR5AVR4AVR3AVR2AVR1OPENPRF1PRF2PRF3PRF4PRF5PRF6VOID";
+
   Debug debug;
-  
+
+
   bias_file.open(FILE_BIAS);
 
   if (!bias_file.is_open()) {
@@ -108,7 +114,8 @@ Bias::Bias()
 
       if (str != "ALL" &&
           (token_count(str, "-") != 2 || get_token(str, 0, "-") == "" ||
-           get_token(str, 1, "-") == "")) {
+           get_token(str, 1, "-") == "")) 
+      {
         oss << "Invalid schedule descriptor at line " << line
             << ": invalid time";
         debug.push_error(oss.str());
@@ -159,8 +166,10 @@ int Bias::get_bias(
   }
 
   e_bias bias;
+
   int idx;
   int level = 0;
+
 
   for (int i = 0; i < vec_bitpos_idx[days].size(); i++)
     for (int j = 0; j < 2 * (end_time - start_time); j++) {
@@ -189,7 +198,9 @@ int Bias::get_bias(const string &instr, bs_t bs)
   }
 
   uint8_t days;
+
   double start_time;
+
 
   days       = static_cast<uint8_t>((bs >> 56).to_ulong());
   bs         = (bs & MASK_TIME) >> 16;
@@ -214,6 +225,7 @@ void Bias::set_bias(
   assert(days < 128);
 
   int idx;
+
 
   if (m_mapstr_bias.find(instr) == m_mapstr_bias.end()) {
     m_mapstr_bias[instr].resize(336, OPEN);

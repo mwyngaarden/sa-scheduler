@@ -115,11 +115,7 @@ int main(int argc, char *argv[])
     Schedule sched;
 
     cout << endl << "Optimizing schedule..." << endl << endl;
-
-    sched.optimize();
-
-
-    /*
+    
     boost::thread_group threads;
 
     for (int i = 0; i < options[OPT_THREADS]; i++) {
@@ -127,10 +123,10 @@ int main(int argc, char *argv[])
     }
 
     threads.join_all();
-    */
 
     cout << endl << "Optimization complete (" << sched.get_duration()
          << " seconds)" << endl << endl;
+
     system("pause");
 
   } catch (exception &e) {

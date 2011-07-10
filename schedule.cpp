@@ -60,7 +60,7 @@ Schedule::Schedule() : Course()
   m_rng.seed(static_cast<const uint32_t>(time(NULL)));
 }
 
-int Schedule::optimize()
+void Schedule::optimize()
 {
   boost::mt19937 my_rng;
 
@@ -81,14 +81,20 @@ int Schedule::optimize()
 
   double delta;
   double temp;
+
   int iter;
+
   health_t health;
+
   string str;
+
   state_t cur_state;
   
   map<string, course_t> crs_name_idx;
   map<string, course_t>::iterator course_it;
+
   map<string, room_t>::iterator room_it;
+
 
   // for referencing constant courses by name rather than id
   for (course_it = m_mapstr_const_course.begin(); course_it != m_mapstr_const_course.end(); course_it++) {
@@ -138,7 +144,40 @@ int Schedule::optimize()
         m_end_time = time(NULL);
         m_finished = true;
         save_scheds(best_state);
-        return best_state.health.fitness;
+        return;
+      }
+
+    } else if (!((iter + 1) % options[OPT_SYNCINTVL]) && options[OPT_THREADS] > 1) {
+      boost::mutex::scoped_lock scoped_lock(m_mutex);
+
+      if (m_finished) {
+        return;
+      }
+
+      m_shared_last_update += options[OPT_SYNCINTVL];
+      m_shared_iters       += options[OPT_SYNCINTVL];
+
+      if (best_state.health.ffit < m_shared_state.health.ffit) {
+        m_shared_state = best_state;
+
+      } else if (m_shared_state.health.ffit < best_state.health.ffit) {
+        best_state = m_shared_state;
+      }
+
+      if (m_shared_last_update >= options[OPT_POLLINTVL]) {
+        if (options[OPT_VERBOSE]) {
+          display_stats(best_state, m_shared_iters);
+          cout << "temperature: " << temp << endl << endl;
+        }
+
+        m_shared_last_update = 0;
+      }
+
+      if (m_shared_iters > 1000000) {
+        m_end_time = time(NULL);
+        m_finished = true;
+        save_scheds(best_state);
+        return;
       }
     }
   } // end for
@@ -174,7 +213,7 @@ void Schedule::save_scheds(const state_t &best_state)
   }
 
   if (best_state.health.avoid_colls) {
-    cout << "Collisions with avoidances scheduled concurrently:" << endl;
+    cout << endl<< "Collisions with avoidances scheduled concurrently:" << endl;
 
     for (int i = 0; i < best_state.state.size(); i++) {
       if (best_state.state[i].health.avoid_colls) {
@@ -186,7 +225,7 @@ void Schedule::save_scheds(const state_t &best_state)
   }
 
   if (best_state.health.bias_fitness < 0) {
-    cout << "Collisions with instructor blocks:" << endl;
+    cout << endl << "Collisions with instructor blocks:" << endl;
 
     for (int i = 0; i < best_state.state.size(); i++) {
       if (best_state.state[i].health.bias_fitness < 0) {
@@ -205,12 +244,16 @@ void Schedule::save_scheds(const state_t &best_state)
   int blocks;
   int idx;
   int start_time;
+
   string group;
   string id;
   string room_id;
   string str;
+  string yesno_str;
+
   bs_t bs;
   bs_t times;
+
   uint8_t days;
   
   map<string, Week> mapstr_group;
@@ -220,7 +263,7 @@ void Schedule::save_scheds(const state_t &best_state)
   ofstream group_html;
   ofstream instr_html;
   ofstream room_html;
-  string yesno_str;
+
 
   if (file_exists("group.html") ||
       file_exists("instr.html") ||
@@ -313,9 +356,11 @@ void Schedule::write_html(ofstream &file, map<string, Week> &mapstr_cal)
   int idx;
   int span;
   int time;
+
   string member;
   string str;
   stringstream oss;
+
 
   for (vector<string>::iterator it=m_vec_header.begin(); it != m_vec_header.end(); it++) {
     file << (*it) << endl;
@@ -395,12 +440,17 @@ void Schedule::get_bitsched(
   int avoid_colls;
   int instr_colls;
   int room_colls;
+
   string str;
+
   bs_t bs;
   
   pfit_t pfit;
+
   vector<double> vec_fitness;
+
   vector<pfit_t> ptime;
+
 
   for (i = 0; i < course.vec_avail_times.size(); i++) {
     avoid_colls = 0;
@@ -487,20 +537,28 @@ void Schedule::perturb_state(
   vector<course_t>      &cur_state)
 {
   bool room_change;
+
   course_t course;
+
   double rand_double;
+
   int i, j;
   int idx;
+
   bs_t bs;
   
   room_pfit_t new_pfit;
+
   vector<double> vec_weight;
+
   vector<room_pfit_t> vec_proom;
   
   map<string, bs_t> u_crs_idx;
   map<string, bs_t> u_instr_idx;
   map<string, bs_t> u_room_idx;
+
   map<string, course_t>::iterator course_it;
+
 
   // set constants for room and instructor times in indices
   for (course_it = m_mapstr_const_course.begin(); course_it != m_mapstr_const_course.end(); course_it++) {

@@ -45,8 +45,6 @@ class Schedule : public Course
       std::map<std::string, bs_t>     &u_room_idx,
       boost::mt19937                  &my_rng);
 
-    int get_duration();
-    int optimize();
     void perturb_state(
       const state_t                   &best_state,
       std::map<std::string, course_t> &crs_name_idx,
@@ -76,7 +74,9 @@ class Schedule : public Course
       assert((bs & VALID_MASK).none());
       return static_cast<int>((bs & MASK_DAY).count() * (bs & MASK_TIME).count());
     };
-        
+
+    int get_duration      ();
+    void optimize         ();        
     void display_stats    (const state_t &state, int iter);
     void save_scheds      (const state_t &best_state);
     void write_html       (std::ofstream &file, std::map<std::string, Week> &mapstr_cal);
@@ -110,8 +110,8 @@ namespace
   const double PB_TMUT   =   0.5;
 
   const double ABS_TEMP    = 1.0e-4;
-  const double INIT_TEMP   = 1.0e+6;
-  const double COOL_RATE   = 0.9999;
+  const double INIT_TEMP   = 1.0e+12;
+  const double COOL_RATE   = 0.99;
 }
 
 #endif // !defined(SCHEDULE_HPP)

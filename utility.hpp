@@ -94,7 +94,7 @@ class health_t
       instr_colls  =  INF;
       late_penalty =  INF;
       room_colls   =  INF;
-      ffit         =  INF;
+      ffit         =  1.0e+15;
     };
 
     int avoid_colls;

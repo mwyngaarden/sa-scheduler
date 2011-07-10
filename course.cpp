@@ -37,19 +37,24 @@ Course::Course() : Bias(), Room()
   }
 
   int i, line;
+
   size_t found;
+
   string read_str;
   string str;
   string str_util;
-  uint32_t flag;
-  
   string avoid;
   string instr;
   string room_type;
+
+  uint32_t flag;
+
   course_t course;
   
   stringstream oss;
+
   Debug debug;
+
   
   course_file.open(FILE_COURSE);
 
@@ -168,7 +173,8 @@ Course::Course() : Bias(), Room()
     }
 
     if ((COURSE_ID|COURSE_NAME) & ~flag ||
-        (COURSE_TYPE & flag && room_type != "L" && room_type != "S")) {
+        (COURSE_TYPE & flag && room_type != "L" && room_type != "S")) 
+    {
       oss << "Invalid course description at line " << line
           << ": invalid course name, ID, or class type";
       debug.push_error(oss.str());
@@ -227,11 +233,15 @@ bool Course::push_course(course_t &course)
   }
 
   double k;
+
   int i;
+
   bs_t bs;
+
   map<string, room_t>::iterator begin_it;
   map<string, room_t>::iterator end_it;
   map<string, room_t>::iterator it;
+
 
   if (course.is_lab) {
     begin_it = m_mapstr_labrooms.begin();
@@ -266,7 +276,8 @@ bool Course::push_course(course_t &course)
         bs = make_bitsched(k, k + course.hours, 2 << i);
 
         if (!(course.const_time && ((make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME).any()) && // dummy day
-            !(course.const_days && ((make_bitsched(12.0, 13.0, course.days) ^ bs) & MASK_DAY).any())) { // dummy time
+            !(course.const_days && ((make_bitsched(12.0, 13.0, course.days) ^ bs) & MASK_DAY).any())) // dummy time
+        { 
           course.vec_avail_times.push_back(bs);
         }
       }
