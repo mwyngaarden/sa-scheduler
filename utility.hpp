@@ -40,8 +40,9 @@ const std::string COMPILE_DATE = __DATE__;
 
 const std::string FILE_BIAS   = "bias.csv";
 const std::string FILE_COURSE = "courses.csv";
-const std::string FILE_ROOM   = "rooms.csv";
+const std::string FILE_GROUP  = "groups.csv";
 const std::string FILE_HTML   = "html_header.txt";
+const std::string FILE_ROOM   = "rooms.csv";
 
 const std::string VALID_DAYS = "SUNMONTUEWEDTHUFRISATALL";
 
@@ -61,8 +62,6 @@ enum e_opts {
   OPT_CONTIGLABS,
   OPT_POLLINTVL,
   OPT_ROOMBUFF,
-  OPT_SYNCINTVL,
-  OPT_THREADS,
   OPT_VERBOSE,
   OPT_TOTOPTS
 };
@@ -94,7 +93,7 @@ class health_t
       instr_colls  =  INF;
       late_penalty =  INF;
       room_colls   =  INF;
-      ffit         =  1.0e+15;
+      ffit         =  1.0e+30;
     };
 
     int avoid_colls;
@@ -302,6 +301,8 @@ std::string break_instr   (const std::vector<std::string> &vec_instr);
 
 uint8_t day_to_flag       (const std::string &day);
 int day_to_int            (const std::string &day);
+std::string flag_to_str   (uint8_t days);
+std::string vec_to_str    (const std::vector<std::string> &vec_instr);
 std::string hex_to_bin    (char hex);
 
 extern int options[OPT_TOTOPTS];
@@ -367,7 +368,7 @@ inline double get_score(const health_t &health)
   
   score += health.buf_fitness  * 1.0e-1;
   score += health.late_penalty * 1.0e-6;
-  score += (1.0e+5 - health.bias_fitness) * 1.0e-2;
+  score += (1.0e+6 - health.bias_fitness) * 1.0e-2;
   score += health.fitness      * 1.0e+9;
   return score;
 }

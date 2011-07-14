@@ -38,9 +38,11 @@ class Course : public Bias, public Room
 
     std::map<std::string, course_t> m_mapstr_const_course;
     std::map<std::string, course_t> m_mapstr_course;
+    std::map<std::string, std::vector<std::string> > m_mapstr_groups;
 
   private:
     std::ifstream course_file;
+    std::ifstream group_file;
 };
 
 namespace

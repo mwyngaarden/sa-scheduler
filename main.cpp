@@ -23,8 +23,6 @@
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/thread/thread.hpp>
 
 #include "debug.hpp"
 #include "schedule.hpp"
@@ -38,7 +36,6 @@ int main(int argc, char *argv[])
 {
   cout << endl
        << "SACS by Martin Wyngaarden (mwyngaarden@lssu.edu)" << endl 
-       << "CPU: threads = " << cpu_max_threads() << endl 
        << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME << endl << endl;
 
   try {
@@ -69,12 +66,6 @@ int main(int argc, char *argv[])
     
       ("poll,p", po::value<int>(&options[OPT_POLLINTVL])->default_value(100),
        "interval between status updates")
-    
-      ("sync,s", po::value<int>(&options[OPT_SYNCINTVL])->default_value(1),
-       "interval between thread synchronization")
-    
-      ("threads,t", po::value<int>(&options[OPT_THREADS])->default_value(1),
-       "number of threads to use")
     
       ("verbose,v", po::value<int>(&options[OPT_VERBOSE])->default_value(1),
        "output status updates");
@@ -107,25 +98,16 @@ int main(int argc, char *argv[])
       return 0;
     }
 
-    if (!options[OPT_THREADS]) {
-      options[OPT_THREADS] = cpu_max_threads();
-    }
-
     util_init();
     Schedule sched;
 
     cout << endl << "Optimizing schedule..." << endl << endl;
     
-    boost::thread_group threads;
+    sched.optimize();
 
-    for (int i = 0; i < options[OPT_THREADS]; i++) {
-      threads.create_thread(boost::bind(&Schedule::optimize, &sched));
-    }
-
-    threads.join_all();
-
-    cout << endl << "Optimization complete (" << sched.get_duration()
-         << " seconds)" << endl << endl;
+    cout << endl 
+         << "Optimization complete (" << sched.get_duration() << " seconds)" 
+         << endl << endl;
 
     system("pause");
 

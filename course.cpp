@@ -32,11 +32,7 @@ using namespace std;
 
 Course::Course() : Bias(), Room()
 {
-  if (options[OPT_VERBOSE]) {
-    cout << setw(36) << left << "Reading course descriptions... ";
-  }
-
-  int i, line;
+  int i, j, line;
 
   size_t found;
 
@@ -55,7 +51,53 @@ Course::Course() : Bias(), Room()
 
   Debug debug;
 
-  
+  if (options[OPT_VERBOSE]) {
+    cout << setw(36) << left << "Reading group descriptions... ";
+  }
+
+  group_file.open(FILE_GROUP);
+
+  if (!group_file.is_open()) {
+    str = "Unable to open " + FILE_GROUP;
+    debug.push_error(str);
+  }
+
+  debug.live_or_die();
+
+  for (line = 1, flag = 0; getline(group_file, read_str); line++, flag = 0) {
+    if (read_str.empty()) {
+      continue;
+    }
+
+    if (token_count(read_str, ",") < 2) {
+      oss << "Invalid group description at line " << line
+          << ": invalid format";
+      debug.push_error(oss.str());
+      oss.str("");
+      continue;
+    }
+
+    for (i = 1; i < token_count(read_str, ","); i++) {
+      str = get_token(read_str, i, ",");
+
+      for (j = 0; j < token_count(str, ":"); j++) {
+        m_mapstr_groups[get_token(read_str, 0, ",")].push_back(get_token(str, j, ":"));
+      }
+    }
+  }
+
+  group_file.close();
+
+  if (options[OPT_VERBOSE]) {
+    cout << "done" << endl;
+  }
+
+  debug.live_or_die();
+
+  if (options[OPT_VERBOSE]) {
+    cout << setw(36) << left << "Reading course descriptions... ";
+  }
+
   course_file.open(FILE_COURSE);
 
   if (!course_file.is_open()) {
@@ -83,6 +125,10 @@ Course::Course() : Bias(), Room()
           << ": invalid format";
       debug.push_error(oss.str());
       oss.str("");
+      continue;
+    }
+
+    if (get_token(read_str, 0, ",") == "") {
       continue;
     }
 
@@ -234,29 +280,34 @@ bool Course::push_course(course_t &course)
 
   double k;
 
-  int i;
+  int i, j;
 
   bs_t bs;
+
+  string str;
+  string group;
 
   map<string, room_t>::iterator begin_it;
   map<string, room_t>::iterator end_it;
   map<string, room_t>::iterator it;
 
-
-  if (course.is_lab) {
-    begin_it = m_mapstr_labrooms.begin();
-    end_it   = m_mapstr_labrooms.end();
-
-  } else {
-    begin_it = m_mapstr_stdrooms.begin();
-    end_it   = m_mapstr_stdrooms.end();
-  }
-
-  for (it = begin_it; it != end_it; it++)
-    if ((*it).second.size >= course.size) {
-      course.vec_prooms.push_back((*it).second);
+  if (course.const_room) {
+    if (course.is_lab) {
+      begin_it = m_mapstr_labrooms.begin();
+      end_it   = m_mapstr_labrooms.end();
+  
+    } else {
+      begin_it = m_mapstr_stdrooms.begin();
+      end_it   = m_mapstr_stdrooms.end();
     }
-
+  
+    for (it = begin_it; it != end_it; it++) {
+      if ((*it).second.size >= course.size) {
+        course.vec_prooms.push_back((*it).second);
+      }
+    }
+  }
+  
   if (course.hours == 3 && course.lectures == 2) {
     for (i = 0; i < 9; i++) {
       course.vec_avail_times.push_back(sched_bs_idx[3][i]);
@@ -299,6 +350,16 @@ bool Course::push_course(course_t &course)
   } else {
     for (i = 0; i < sched_bs_idx[course.hours].size(); i++) {
       course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
+    }
+  }
+
+  for (i = 0; i < token_count(course.group, ":"); i++) {
+    str = get_token(course.group, i, ":");
+
+    for (j = 0; j < m_mapstr_groups[str].size(); j++) {
+      if (m_mapstr_groups[str][j] != course.id && m_mapstr_groups[str][j] != course.name) {
+        course.vec_avoid.push_back(m_mapstr_groups[str][j]);
+      }
     }
   }
 

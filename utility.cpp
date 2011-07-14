@@ -100,6 +100,8 @@ string get_token(const string &str, int n, string delim)
 
 string break_instr(const vector<string> &vec_instr)
 {
+  assert(vec_instr.size());
+
   string ret_str;
 
   for (int i = 0; i < vec_instr.size(); i++) {
@@ -127,12 +129,47 @@ bool proom_sort(const room_pfit_t &lhs, const room_pfit_t &rhs)
 
 uint8_t day_to_flag(const std::string &day)
 {
+  assert(day != "");
+
   return 1 << day_to_int(day);
 }
 
 int day_to_int(const std::string &day)
 {
+  assert(day != "");
+
   return static_cast<int>(VALID_DAYS.find(day) / 3);
+}
+
+string flag_to_str(uint8_t days)
+{
+  assert(days & 0x3e);
+  assert(!(days & 0xc1));
+  
+  string ret_str;
+
+  for (int i = 1; i < 6; i++) {
+    if (days & (1 << i)) {
+      ret_str += ":" + VALID_DAYS.substr(3 * i, 3);
+    }
+  }
+
+  ret_str.erase(0, 1);
+
+  return ret_str;
+}
+
+string vec_to_str(const vector<string> &vec_str) 
+{
+  string ret_str;
+
+  for (int i = 0; i < vec_str.size(); i++) {
+    ret_str += ":" + vec_str[i];
+  }
+
+  ret_str.erase(0, 1);
+
+  return ret_str;
 }
 
 string hex_to_bin(char hex)

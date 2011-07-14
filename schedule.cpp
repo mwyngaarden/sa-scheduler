@@ -23,7 +23,6 @@
 #include <sstream>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
-#include <boost/thread/thread.hpp>
 
 #include "debug.hpp"
 #include "schedule.hpp"
@@ -50,34 +49,13 @@ Schedule::Schedule() : Course()
   }
 
   header_file.close();
-  m_finished = false;
-  m_started  = false;
-  
-  m_shared_iters       = 0;
-  m_shared_last_update = 0;
-  
-  m_shared_state.health.init();
-  m_rng.seed(static_cast<const uint32_t>(time(NULL)));
 }
 
 void Schedule::optimize()
 {
-  boost::mt19937 my_rng;
-
-  if (options[OPT_THREADS] > 1) {
-    boost::mutex::scoped_lock scoped_lock(m_mutex);
-    my_rng.seed(m_rng());
-
-    if (!m_started) {
-      m_started = true;
-      m_start_time = time(NULL);
-    }
-
-  } else {
-    my_rng.seed(m_rng());
-    m_started = true;
-    m_start_time = time(NULL);
-  }
+  boost::mt19937 rng;
+  rng.seed(static_cast<const uint32_t>(time(NULL)));
+  m_start_time = time(NULL);
 
   double delta;
   double temp;
@@ -100,9 +78,11 @@ void Schedule::optimize()
   for (course_it = m_mapstr_const_course.begin(); course_it != m_mapstr_const_course.end(); course_it++) {
     str = (*course_it).second.name;
     crs_name_idx[str] = (*course_it).second;
-    crs_name_idx[str].bs_sched |= make_bitsched(crs_name_idx[str].start_time,
-                                                crs_name_idx[str].end_time,
-                                                crs_name_idx[str].days);
+
+    crs_name_idx[str].bs_sched |=
+      make_bitsched(crs_name_idx[str].start_time,
+                    crs_name_idx[str].end_time,
+                    crs_name_idx[str].days);
   }
 
   state_t best_state;
@@ -120,7 +100,7 @@ void Schedule::optimize()
   for (iter = 0, temp = INIT_TEMP; true; iter++, temp *= COOL_RATE) {
     health.reset();
 
-    perturb_state(best_state, crs_name_idx, my_rng, health, cur_state.state);
+    perturb_state(best_state, crs_name_idx, rng, health, cur_state.state);
 
     cur_state.health = health;
     cur_state.health.fitness = health.avoid_colls * AVOID_MUL
@@ -130,11 +110,11 @@ void Schedule::optimize()
     cur_state.health.ffit = get_score(cur_state.health);
     delta = cur_state.health.ffit - best_state.health.ffit;
 
-    if (delta < 0 || exp(-delta / temp) > rand_unitintvl(my_rng)) {
+    if (delta < 0 || exp(-delta / temp) > rand_unitintvl(rng)) {
       best_state = cur_state;
     }
 
-    if (!((iter + 1) % options[OPT_POLLINTVL]) && options[OPT_THREADS] == 1) {
+    if (!((iter + 1) % options[OPT_POLLINTVL])) {
       if (options[OPT_VERBOSE]) {
         display_stats(best_state, iter + 1);
         cout << "temperature: " << temp << endl << endl;
@@ -142,40 +122,6 @@ void Schedule::optimize()
 
       if (temp < ABS_TEMP) {
         m_end_time = time(NULL);
-        m_finished = true;
-        save_scheds(best_state);
-        return;
-      }
-
-    } else if (!((iter + 1) % options[OPT_SYNCINTVL]) && options[OPT_THREADS] > 1) {
-      boost::mutex::scoped_lock scoped_lock(m_mutex);
-
-      if (m_finished) {
-        return;
-      }
-
-      m_shared_last_update += options[OPT_SYNCINTVL];
-      m_shared_iters       += options[OPT_SYNCINTVL];
-
-      if (best_state.health.ffit < m_shared_state.health.ffit) {
-        m_shared_state = best_state;
-
-      } else if (m_shared_state.health.ffit < best_state.health.ffit) {
-        best_state = m_shared_state;
-      }
-
-      if (m_shared_last_update >= options[OPT_POLLINTVL]) {
-        if (options[OPT_VERBOSE]) {
-          display_stats(best_state, m_shared_iters);
-          cout << "temperature: " << temp << endl << endl;
-        }
-
-        m_shared_last_update = 0;
-      }
-
-      if (m_shared_iters > 1000000) {
-        m_end_time = time(NULL);
-        m_finished = true;
         save_scheds(best_state);
         return;
       }
@@ -185,7 +131,6 @@ void Schedule::optimize()
 
 void Schedule::save_scheds(const state_t &best_state)
 {
-  bool invalid = false;
   cout << endl;
 
   if (best_state.health.instr_colls) {
@@ -196,8 +141,6 @@ void Schedule::save_scheds(const state_t &best_state)
         cout << best_state.state[i].id << endl;
       }
     }
-
-    invalid = true;
   }
 
   if (best_state.health.room_colls) {
@@ -208,8 +151,6 @@ void Schedule::save_scheds(const state_t &best_state)
         cout << best_state.state[i].id << ": " << best_state.state[i].room_id << endl;
       }
     }
-
-    invalid = true;
   }
 
   if (best_state.health.avoid_colls) {
@@ -220,8 +161,6 @@ void Schedule::save_scheds(const state_t &best_state)
         cout << best_state.state[i].id << endl;
       }
     }
-
-    invalid = true;
   }
 
   if (best_state.health.bias_fitness < 0) {
@@ -232,12 +171,6 @@ void Schedule::save_scheds(const state_t &best_state)
         cout << best_state.state[i].id << endl;
       }
     }
-
-    invalid = true;
-  }
-
-  if (invalid) {
-    return;
   }
 
   int i, j, k, l;
@@ -247,6 +180,7 @@ void Schedule::save_scheds(const state_t &best_state)
 
   string group;
   string id;
+  string lects;
   string room_id;
   string str;
   string yesno_str;
@@ -263,13 +197,16 @@ void Schedule::save_scheds(const state_t &best_state)
   ofstream group_html;
   ofstream instr_html;
   ofstream room_html;
+  ofstream saved_scheds;
 
 
   if (file_exists("group.html") ||
       file_exists("instr.html") ||
-      file_exists("room.html")) {
+      file_exists("room.html")  ||
+      file_exists("scheduled.csv")) 
+  {
     while (true) {
-      cout << "Overwrite existing schedules (y/n)? ";
+      cout << endl << "Overwrite existing schedules (y/n)? ";
       cin >> yesno_str;
 
       if (make_upper(yesno_str) == "Y") {
@@ -284,12 +221,23 @@ void Schedule::save_scheds(const state_t &best_state)
   group_html.open("group.html");
   instr_html.open("instr.html");
   room_html.open("room.html");
+  saved_scheds.open("scheduled.csv");
+
+  saved_scheds.precision(1);
 
   // indices are built using an array of 7*48=336 m_week_t structures for all
   // groups, instructors, and rooms using the day and time as the index, for
   // example, monday (=1) at 15hrs (=30) = [1 * 48 + 30]
 
   for (i = 0; i < best_state.state.size(); i++) { // cycle through classes
+    if (best_state.state[i].health.avoid_colls ||
+        best_state.state[i].health.instr_colls ||
+        best_state.state[i].health.room_colls  ||
+        best_state.state[i].health.bias_fitness < 0)
+    {
+      continue;
+    }
+
     bs          = best_state.state[i].bs_sched;
     days        = static_cast<uint8_t>((bs >> 56).to_ulong());
     times       = (bs & MASK_TIME) >> 16;
@@ -299,6 +247,25 @@ void Schedule::save_scheds(const state_t &best_state)
     id          = best_state.state[i].id;
     room_id     = best_state.state[i].room_id;
     group       = best_state.state[i].group;
+    
+    if (best_state.state[i].lectures) {
+      lects = best_state.state[i].lectures;
+    }
+
+    saved_scheds << fixed
+                 << id                                                << ","
+                 << best_state.state[i].name                          << ","
+                 << best_state.state[i].hours                         << ","
+                 << (best_state.state[i].is_lab ? "L" : "S")          << ","
+                 << flag_to_str(days)                                 << ","
+                 << static_cast<double>(start_time / 2.0)             << "-"
+                 << static_cast<double>((start_time + blocks) / 2.0)  << ","
+                 << vec_to_str(best_state.state[i].vec_instr)         << ","
+                 << room_id                                           << ","
+                 << best_state.state[i].size                          << ","
+                 << lects                                             << ","
+                 << group                                             << ","
+                 << vec_to_str(best_state.state[i].vec_avoid)         << endl;
 
     for (j = 0; j < vec_bitpos_idx[days].size(); j++) { // cycle through bit-days
       idx = vec_bitpos_idx[days][j] + start_time;
@@ -343,7 +310,7 @@ void Schedule::save_scheds(const state_t &best_state)
   write_html(room_html, mapstr_room);
 
   if (options[OPT_VERBOSE]) {
-    cout << endl << "Schedules saved to html" << endl << endl;
+    cout << endl << "Schedules saved!" << endl << endl;
   }
 
   group_html.close();
@@ -419,11 +386,9 @@ void Schedule::display_stats(const state_t &state, int iter)
 {
   cout << "iteration = " << right << iter
        << " fitness: "
-       << "(a="
-       << state.health.avoid_colls << " i="
-       << state.health.instr_colls << " r="
-       << state.health.room_colls
-       << ") "
+       << "(a=" << state.health.avoid_colls 
+       << " i=" << state.health.instr_colls 
+       << " r=" << state.health.room_colls << ") "
        << state.health.ffit << endl << endl;
 }
 
@@ -433,7 +398,7 @@ void Schedule::get_bitsched(
   map<string, bs_t>     &u_crs_idx,
   map<string, bs_t>     &u_instr_idx,
   map<string, bs_t>     &u_room_idx,
-  boost::mt19937        &my_rng)
+  boost::mt19937        &rng)
 {
   int i, j;
   int idx;
@@ -510,7 +475,7 @@ void Schedule::get_bitsched(
     assert(fstdevp >= 0);
     
     boost::normal_distribution<> nd(fmean, fstdevp);
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor(my_rng, nd);
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor(rng, nd);
     
     idx = static_cast<int>(fabs(fmean - var_nor()) / 2.0);
     idx = idx >= ptime.size() ? static_cast<int>(ptime.size()) - 1 : idx;
@@ -532,7 +497,7 @@ void Schedule::get_bitsched(
 void Schedule::perturb_state(
   const state_t         &best_state,
   map<string, course_t> &crs_name_idx,
-  boost::mt19937        &my_rng,
+  boost::mt19937        &rng,
   health_t              &health,
   vector<course_t>      &cur_state)
 {
@@ -574,9 +539,13 @@ void Schedule::perturb_state(
   for (i = 0; i < best_state.state.size(); i++) {
     course      = best_state.state[i];
     room_change = false;
-    rand_double = rand_unitintvl(my_rng);
+    rand_double = rand_unitintvl(rng);
 
-    if (!course.const_room && (rand_double < PB_RMUT || course.health.buf_fitness || course.room_id == "")) {
+    if (!course.const_room && 
+         (rand_double < PB_RMUT     || 
+          course.health.buf_fitness || 
+          course.room_id == "")) 
+    {
       idx = 0;
 
       if (course.vec_prooms.size() > 1) {
@@ -602,7 +571,7 @@ void Schedule::perturb_state(
         assert(fstdevp >= 0);
         
         boost::normal_distribution<> nd(fmean, fstdevp);
-        boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor(my_rng, nd);
+        boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor(rng, nd);
         
         idx = static_cast<int>(fabs(fmean - var_nor()) / 5.2);
         idx = idx >= course.vec_prooms.size() ? static_cast<int>(course.vec_prooms.size()) - 1 : idx;
@@ -615,7 +584,7 @@ void Schedule::perturb_state(
       }
     }
 
-    rand_double = rand_unitintvl(my_rng);
+    rand_double = rand_unitintvl(rng);
 
     if (rand_double < PB_TMUT           ||
         room_change                     ||
@@ -623,7 +592,7 @@ void Schedule::perturb_state(
         course.health.bias_fitness < 0  ||
         course.health.fitness) 
     {
-      get_bitsched(course, crs_name_idx, u_crs_idx, u_instr_idx, u_room_idx, my_rng);
+      get_bitsched(course, crs_name_idx, u_crs_idx, u_instr_idx, u_room_idx, rng);
       course.health.bias_fitness = 0;
 
       for (j = 0; j < course.vec_instr.size(); j++) {
@@ -647,7 +616,7 @@ void Schedule::perturb_state(
     assert((course.bs_sched & VALID_MASK).none());
     assert(course.vec_avail_times.size());
     assert(course.vec_instr.size());
-    assert(course.vec_prooms.size());
+    assert(course.const_room || (course.vec_prooms.size() && !course.const_room));
     
     health.avoid_colls  += course.health.avoid_colls;
     health.bias_fitness += course.health.bias_fitness;

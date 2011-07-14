@@ -25,7 +25,6 @@
 #include <fstream>
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
-#include <boost/thread/mutex.hpp>
 
 #include "course.hpp"
 #include "debug.hpp"
@@ -85,16 +84,6 @@ class Schedule : public Course
     std::ifstream header_file;
     std::vector<std::string> m_vec_header;
 
-    boost::mutex m_mutex; // thread locking
-    boost::mt19937 m_rng;
-
-    // threading
-    bool m_finished;
-    bool m_started;
-    state_t m_shared_state;
-    int m_shared_iters;
-    int m_shared_last_update;
-
     time_t m_end_time;
     time_t m_start_time;
 };
@@ -106,12 +95,12 @@ namespace
   const int INSTR_MUL    = 1;
   const int ROOM_MUL     = 1;
 
-  const double PB_RMUT   =   0.95;
-  const double PB_TMUT   =   0.5;
+  const double PB_RMUT   = 0.95;
+  const double PB_TMUT   = 0.5;
 
-  const double ABS_TEMP    = 1.0e-4;
-  const double INIT_TEMP   = 1.0e+12;
-  const double COOL_RATE   = 0.99;
+  const double ABS_TEMP  = 1.0e-4;
+  const double INIT_TEMP = 1.0e+12;
+  const double COOL_RATE = 0.9972;
 }
 
 #endif // !defined(SCHEDULE_HPP)

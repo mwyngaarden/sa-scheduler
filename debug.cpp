@@ -50,6 +50,7 @@ void Debug::live_or_die()
 
     cout << endl << "Catastrophic failure: see debug.log" << endl;
     debug_log.close();
+    system("pause");
     exit(1);
   }
 
