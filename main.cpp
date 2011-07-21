@@ -35,39 +35,51 @@ namespace po = boost::program_options;
 int main(int argc, char *argv[])
 {
   cout << endl
-       << "SACS by Martin Wyngaarden (mwyngaarden@lssu.edu)" << endl 
-       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME << endl << endl;
+       << "SACS, a Simulated Annealing Class Scheduler" << endl
+       << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" << endl 
+       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME << endl 
+       << endl;
 
   try {
     string config_file;
 
+    
     // command line only options
     po::options_description common("Command line options");
     common.add_options()
       ("config,c", po::value<string>(&config_file)->default_value("sched.cfg"),
        "configuration file")
-      
       ("help,h", "produce help message");
     
     // command line and configuration file options
     po::options_description config("Configuration");
     config.add_options()
-      ("buffer,b", po::value<int>(&options[OPT_ROOMBUFF])->default_value(4),
+      ("buffer,b", 
+       po::value<int>(&options[OPT_ROOMBUFF])->default_value(4),
        "room size buffer")
-      
-      ("contiguous-labs,l", po::value<int>(&options[OPT_CONTIGLABS])->default_value(1),
+
+      ("contiguous-labs,l", 
+       po::value<int>(&options[OPT_CONTIGLABS])->default_value(1),
        "schedule labs in single blocks")
-      
-      ("lab-end-time,n", po::value<int>(&options[OPT_CLABETIME])->default_value(21),
+
+      ("lab-end-time,n",    
+       po::value<int>(&options[OPT_CLABETIME])->default_value(21),
        "end time for contiguous labs")
-    
-      ("lab-start-time,l", po::value<int>(&options[OPT_CLABSTIME])->default_value(8),
+
+      ("lab-start-time,l",  
+       po::value<int>(&options[OPT_CLABSTIME])->default_value(8),
        "start time for contiguous labs")
-    
-      ("poll,p", po::value<int>(&options[OPT_POLLINTVL])->default_value(100),
+
+      ("poll,p",            
+       po::value<int>(&options[OPT_POLLINTVL])->default_value(10),
        "interval between status updates")
-    
-      ("verbose,v", po::value<int>(&options[OPT_VERBOSE])->default_value(1),
+
+      ("reduction,r",       
+       po::value<int>(&options[OPT_TEMPRED])->default_value(990000),
+       "temperature reduction per iteration")
+
+      ("verbose,v",         
+       po::value<int>(&options[OPT_VERBOSE])->default_value(1),
        "output status updates");
     
     po::options_description cmdline_options;
@@ -102,11 +114,11 @@ int main(int argc, char *argv[])
     Schedule sched;
 
     cout << endl << "Optimizing schedule..." << endl << endl;
-    
+
     sched.optimize();
 
     cout << endl 
-         << "Optimization complete (" << sched.get_duration() << " seconds)" 
+         << "Optimization complete (" << sched.duration() << " seconds)" 
          << endl << endl;
 
     system("pause");

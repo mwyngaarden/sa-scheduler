@@ -42,6 +42,7 @@ Room::Room()
   
   ostringstream oss;
   Debug debug;
+
   
   room_file.open(FILE_ROOM);
 
@@ -56,6 +57,8 @@ Room::Room()
     if (read_str.empty()) {
       continue;
     }
+
+    read_str = make_upper(read_str);
 
     if (token_count(read_str, ",") < 3) {
       oss << "Ignoring room entry at line " << line
@@ -91,9 +94,7 @@ Room::Room()
       continue;
     }
 
-    if (make_upper(get_token(read_str, 2, ",")) != "L" &&
-        make_upper(get_token(read_str, 2, ",")) != "S") 
-    {
+    if (get_token(read_str, 2, ",") != "L" && get_token(read_str, 2, ",") != "S") {
       oss << "Invalid room entry at line " << line
           << ": invalid room type, use S/L)";
       debug.push_error(oss.str());
@@ -101,9 +102,9 @@ Room::Room()
       continue;
     }
 
-    if (make_upper(get_token(read_str, 2, ",")) == "S") {
+    if (get_token(read_str, 2, ",") == "S") {
       if (push_stdroom(
-            make_upper(get_token(read_str, 0, ",")),
+            get_token(read_str, 0, ","),
             atoi(get_token(read_str, 1, ",").c_str()))) 
       {
         oss << "Ignoring room entry at line " << line << ": duplicate";
@@ -114,7 +115,7 @@ Room::Room()
 
     } else {
       if (push_labroom(
-            make_upper(get_token(read_str, 0, ",")),
+            get_token(read_str, 0, ","),
             atoi(get_token(read_str, 1, ",").c_str()))) 
       {
         oss << "Ignoring room entry at line " << line << ": duplicate";

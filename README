@@ -36,11 +36,10 @@ courses.csv allows classes to be scheduled avoiding time slots for any other
 specified class, to be scheduled or not, and of course avoid instructor blocks, 
 where applicable.
 
-The only dependencies I have knowingly introduced that shouldn't be too hard to 
-eliminate are the inclusion of a couple of functions from the publicly available 
-Boost (1.46.1) libraries.
-
-SACS now compiles on 32- and 64-bit CPU's thanks to std::bitset!
+The only dependencies I have knowingly introduced that shouldn't be too control
+for are the inclusion of a couple of functions from the publicly available 
+Boost (1.46.1) libraries used to get program options and random number 
+generation.
 
 
 

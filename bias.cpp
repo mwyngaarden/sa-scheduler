@@ -37,7 +37,8 @@ Bias::Bias()
 
   e_bias bias;
 
-  int i, line;
+  int i; 
+  int line;
 
   uint8_t days;
   uint32_t flag;
@@ -71,6 +72,8 @@ Bias::Bias()
       continue;
     }
 
+    read_str = make_upper(read_str);
+
     for (i = 1; i < token_count(read_str, ","); i++) {
       str = get_token(read_str, i, ",");
 
@@ -86,7 +89,7 @@ Bias::Bias()
         continue;
       }
 
-      str = make_upper(get_token(get_token(read_str, i, ","), 0, ":"));
+      str = get_token(get_token(read_str, i, ","), 0, ":");
       found = valid_status.find(str);
 
       if (found == string::npos || found % 4 != 0 || str.size() != 4) {
@@ -98,7 +101,7 @@ Bias::Bias()
       }
 
       bias = e_bias(found / 4);
-      str = make_upper(get_token(get_token(read_str, i, ","), 1, ":"));
+      str = get_token(get_token(read_str, i, ","), 1, ":");
       found = VALID_DAYS.find(str);
 
       if (found == string::npos || found % 3 != 0 || str.size() != 3) {
@@ -110,7 +113,7 @@ Bias::Bias()
       }
 
       days = str == "ALL" ? 127 : day_to_flag(str);
-      str = make_upper(get_token(get_token(read_str, i, ","), 2, ":"));
+      str = get_token(get_token(read_str, i, ","), 2, ":");
 
       if (str != "ALL" &&
           (token_count(str, "-") != 2 || get_token(str, 0, "-") == "" ||
@@ -125,7 +128,7 @@ Bias::Bias()
 
       start_time = str == "ALL" ?  0.0 : atof(get_token(str, 0, "-").c_str());
       end_time   = str == "ALL" ? 24.0 : atof(get_token(str, 1, "-").c_str());
-      instr = make_upper(get_token(read_str, 0, ","));
+      instr = get_token(read_str, 0, ",");
 
       if (instr == "") {
         oss << "Invalid schedule descriptor at line " << line
@@ -159,7 +162,7 @@ int Bias::get_bias(
   assert(end_time > start_time);
   assert(end_time <= 24.0);
   assert(days & 0x3e);
-  assert(!(days & 0xc1));
+  assert(!(days & ~0x3e));
 
   if (m_mapstr_bias.find(instr) == m_mapstr_bias.end()) {
     return 0;
@@ -186,7 +189,7 @@ int Bias::get_bias(
   return level;
 }
 
-int Bias::get_bias(const string &instr, bs_t bs)
+int Bias::get_bias(const string &instr, const bs_t &bs)
 {
   assert(instr != "");
   assert((bs & MASK_DAY).any());
@@ -201,12 +204,13 @@ int Bias::get_bias(const string &instr, bs_t bs)
 
   double start_time;
 
+  bs_t bit_sched;
 
   days       = static_cast<uint8_t>((bs >> 56).to_ulong());
-  bs         = (bs & MASK_TIME) >> 16;
-  start_time = 8 + 0.5 * get_firstbitpos(bs);
+  bit_sched  = (bs & MASK_TIME) >> 16;
+  start_time = 8 + 0.5 * get_firstbitpos(bit_sched);
 
-  return get_bias(instr, start_time, start_time + bs.count() * 0.5, days);
+  return get_bias(instr, start_time, start_time + bit_sched.count() * 0.5, days);
 }
 
 void Bias::set_bias(
@@ -221,8 +225,8 @@ void Bias::set_bias(
   assert(start_time < 24.0);
   assert(end_time > start_time);
   assert(end_time <= 24.0);
-  assert(days > 0);
-  assert(days < 128);
+  assert(days & 0x3e);
+  assert(!(days & ~0x3e));
 
   int idx;
 

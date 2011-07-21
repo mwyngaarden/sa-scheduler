@@ -38,7 +38,7 @@ const bs_t VALID_MASK ("11000001111111111111110000000000000000000000000011111111
 const std::string COMPILE_TIME = __TIME__;
 const std::string COMPILE_DATE = __DATE__;
 
-const std::string FILE_BIAS   = "bias.csv";
+const std::string FILE_BIAS   = "instructor.csv";
 const std::string FILE_COURSE = "courses.csv";
 const std::string FILE_GROUP  = "groups.csv";
 const std::string FILE_HTML   = "html_header.txt";
@@ -62,6 +62,7 @@ enum e_opts {
   OPT_CONTIGLABS,
   OPT_POLLINTVL,
   OPT_ROOMBUFF,
+  OPT_TEMPRED,
   OPT_VERBOSE,
   OPT_TOTOPTS
 };
@@ -78,10 +79,11 @@ class health_t
       avoid_colls  = 0;
       bias_fitness = 0;
       buf_fitness  = 0;
-      fitness      = 0;
       instr_colls  = 0;
       late_penalty = 0;
       room_colls   = 0;
+      sched        = 0;
+      fitness      = 0;
       ffit         = 0;
     };
 
@@ -89,20 +91,22 @@ class health_t
       avoid_colls  =  INF;
       bias_fitness = -INF;
       buf_fitness  =  INF;
-      fitness      =  INF;
       instr_colls  =  INF;
       late_penalty =  INF;
       room_colls   =  INF;
+      sched        = -INF;
+      fitness      =  1.0e+30;
       ffit         =  1.0e+30;
     };
 
     int avoid_colls;
     int bias_fitness;
     int buf_fitness;
-    int fitness;
     int instr_colls;
     int late_penalty;
     int room_colls;
+    int sched;
+    double fitness;
     double ffit;
 };
 
@@ -156,7 +160,7 @@ class course_t
 
 struct state_t {
   health_t health;
-  std::vector<course_t> state;
+  std::vector<course_t> vec_crs;
 };
 
 struct pfit_t {
@@ -290,7 +294,6 @@ const std::string sched_hex_idx[6][35] = {
 void util_init            ();
 
 bool ptime_sort           (const pfit_t &lhs, const pfit_t &rhs);
-bool proom_sort           (const room_pfit_t &lhs, const room_pfit_t &rhs);
 
 bool file_exists          (const char *file);
 
@@ -335,9 +338,9 @@ inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
   return bs;
 };
 
-inline double rand_unitintvl(boost::mt19937 &my_rng)
+inline double rand_unitintvl(boost::mt19937 &rng)
 {
-  return (my_rng() & 0x7fffffff) / 2147483648.0;
+  return (rng() & 0x7fffffff) / 2147483648.0;
 }
 
 inline double mean(const std::vector<double> &n)

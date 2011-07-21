@@ -33,7 +33,7 @@ class Bias
   public:
     Bias();
 
-    int get_bias(const std::string &instr, bs_t bs);
+    int get_bias(const std::string &instr, const bs_t &bs);
 
     int get_bias(
       const std::string &instr,

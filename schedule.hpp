@@ -37,7 +37,7 @@ class Schedule : public Course
     Schedule();
 
     void get_bitsched(
-      course_t                        &course,
+      course_t                        &const_course,
       std::map<std::string, course_t> &crs_name_idx,
       std::map<std::string, bs_t>     &u_crs_idx,
       std::map<std::string, bs_t>     &u_instr_idx,
@@ -45,13 +45,12 @@ class Schedule : public Course
       boost::mt19937                  &my_rng);
 
     void perturb_state(
-      const state_t                   &best_state,
+      const state_t                   &state,
       std::map<std::string, course_t> &crs_name_idx,
-      boost::mt19937                  &my_rng,
       health_t                        &health,
-      std::vector<course_t>           &cur_state);
+      std::vector<course_t>           &cur_state,
+      boost::mt19937                  &my_rng);
 
-    // TODO: clean up this hack!
     class Week
     {
       public:
@@ -68,39 +67,47 @@ class Schedule : public Course
         } m_week_idx[336];
     };
 
+    int best() {
+      return m_best_fitness;
+    };
+
+    void reset() {
+      m_best_fitness = 0;
+    };
+
     inline int num_conflicts(const bs_t &bs) 
     {
       assert((bs & VALID_MASK).none());
       return static_cast<int>((bs & MASK_DAY).count() * (bs & MASK_TIME).count());
     };
 
-    int get_duration      ();
     void optimize         ();        
     void display_stats    (const state_t &state, int iter);
-    void save_scheds      (const state_t &best_state);
+    void save_scheds      (const state_t &state);
     void write_html       (std::ofstream &file, std::map<std::string, Week> &mapstr_cal);
+    int duration          ();
 
   private:
     std::ifstream header_file;
     std::vector<std::string> m_vec_header;
 
+    boost::mt19937 m_rng;
+
     time_t m_end_time;
     time_t m_start_time;
+    
+    int m_best_fitness;
 };
 
 namespace
 {
   // permutation and evaluation
-  const int AVOID_MUL    = 1;
-  const int INSTR_MUL    = 1;
-  const int ROOM_MUL     = 1;
+  const double TEMP_INIT = 1.0e+1;     // 10
+  const double TEMP_MIN  = 1.0e-5;     // 1.0e-5
 
-  const double PB_RMUT   = 0.95;
-  const double PB_TMUT   = 0.5;
-
-  const double ABS_TEMP  = 1.0e-4;
-  const double INIT_TEMP = 1.0e+12;
-  const double COOL_RATE = 0.9972;
+  const double CMUL_ROOM = 1.0;
+  const double CMUL_AVOID = 1.0;
+  const double CMUL_INSTR = 1.0;
 }
 
 #endif // !defined(SCHEDULE_HPP)

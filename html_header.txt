@@ -6,8 +6,8 @@
     h1{text-align:center;}
     table,th,td{border:1px solid black;}
     table{margin-left:auto;margin-right:auto;border-collapse:collapse;}
-    table{width:792px;height:576px;text-align:center;}
-    td{font-size:10px;height:22px;}
+    table{width:792px;height:544px;text-align:center;}
+    td{font-size:8px;height:20px;}
     th{width:156px;}
   </style>
   <title></title>

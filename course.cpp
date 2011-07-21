@@ -32,7 +32,8 @@ using namespace std;
 
 Course::Course() : Bias(), Room()
 {
-  int i, j, line;
+  int i, j;
+  int line;
 
   size_t found;
 
@@ -68,6 +69,8 @@ Course::Course() : Bias(), Room()
     if (read_str.empty()) {
       continue;
     }
+
+    read_str = make_upper(read_str);
 
     if (token_count(read_str, ",") < 2) {
       oss << "Invalid group description at line " << line
@@ -112,8 +115,10 @@ Course::Course() : Bias(), Room()
       continue;
     }
 
+    read_str = make_upper(read_str);
+
     if (line == 1) {
-      if (make_upper(get_token(read_str, 0, ",")) != "COURSE ID") {
+      if (get_token(read_str, 0, ",") != "COURSE ID") {
         debug.push_error("Invalid file format: courses.csv");
       }
 
@@ -134,31 +139,31 @@ Course::Course() : Bias(), Room()
 
     course.reset();
 
-    if ((course.id = make_upper(get_token(read_str, 0, ","))) != "") {
+    if ((course.id = get_token(read_str, 0, ",")) != "") {
       flag |= COURSE_ID;
     }
 
-    if ((course.name = make_upper(get_token(read_str, 1, ","))) != "") {
+    if ((course.name = get_token(read_str, 1, ",")) != "") {
       flag |= COURSE_NAME;
     }
 
-    if ((room_type = make_upper(get_token(read_str, 3, ","))) != "") {
+    if ((room_type = get_token(read_str, 3, ",")) != "") {
       flag |= COURSE_TYPE;
     }
 
-    if ((instr = make_upper(get_token(read_str, 6, ","))) != "") {
+    if ((instr = get_token(read_str, 6, ",")) != "") {
       flag |= COURSE_INSTR;
     }
 
-    if ((course.room_id = make_upper(get_token(read_str, 7, ","))) != "") {
+    if ((course.room_id = get_token(read_str, 7, ",")) != "") {
       flag |= COURSE_ROOM;
     }
 
-    if ((course.group = make_upper(get_token(read_str, 10, ","))) != "") {
+    if ((course.group = get_token(read_str, 10, ",")) != "") {
       flag |= COURSE_GROUP;
     }
 
-    if ((avoid = make_upper(get_token(read_str, 11, ","))) != "") {
+    if ((avoid = get_token(read_str, 11, ",")) != "") {
       flag |= COURSE_AVOID;
     }
 
@@ -174,7 +179,7 @@ Course::Course() : Bias(), Room()
     // days
     if (str != "") {
       for (i = 0; i < token_count(str, ":"); i++) {
-        str_util = make_upper(get_token(str, i, ":"));
+        str_util = get_token(str, i, ":");
         found = VALID_DAYS.find(str_util);
 
         if (found == string::npos || found % 3 != 0 || str_util.size() != 3) {
@@ -291,7 +296,7 @@ bool Course::push_course(course_t &course)
   map<string, room_t>::iterator end_it;
   map<string, room_t>::iterator it;
 
-  if (course.const_room) {
+  if (!course.const_room) {
     if (course.is_lab) {
       begin_it = m_mapstr_labrooms.begin();
       end_it   = m_mapstr_labrooms.end();
@@ -354,11 +359,13 @@ bool Course::push_course(course_t &course)
   }
 
   for (i = 0; i < token_count(course.group, ":"); i++) {
-    str = get_token(course.group, i, ":");
 
-    for (j = 0; j < m_mapstr_groups[str].size(); j++) {
-      if (m_mapstr_groups[str][j] != course.id && m_mapstr_groups[str][j] != course.name) {
-        course.vec_avoid.push_back(m_mapstr_groups[str][j]);
+    group = get_token(course.group, i, ":");
+
+    for (j = 0; j < m_mapstr_groups[group].size(); j++) {
+      str = m_mapstr_groups[group][j];
+      if (find(course.vec_avoid.begin(), course.vec_avoid.end(), str) == course.vec_avoid.end()  && str != course.id) {
+        course.vec_avoid.push_back(str);
       }
     }
   }
