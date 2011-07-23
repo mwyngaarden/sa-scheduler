@@ -38,7 +38,6 @@ class Schedule : public Course
 
     void get_bitsched(
       course_t                        &const_course,
-      std::map<std::string, course_t> &crs_name_idx,
       std::map<std::string, bs_t>     &u_crs_idx,
       std::map<std::string, bs_t>     &u_instr_idx,
       std::map<std::string, bs_t>     &u_room_idx,
@@ -46,7 +45,6 @@ class Schedule : public Course
 
     void perturb_state(
       const state_t                   &state,
-      std::map<std::string, course_t> &crs_name_idx,
       health_t                        &health,
       std::vector<course_t>           &cur_state,
       boost::mt19937                  &my_rng);
@@ -67,6 +65,14 @@ class Schedule : public Course
         } m_week_idx[336];
     };
 
+    bool can_schedule(const course_t &course) {
+      return 
+        !(course.health.avoid_colls  || 
+          course.health.instr_colls  ||
+          course.health.room_colls   ||
+          course.health.bias_fitness < 0);
+    };
+
     int best() {
       return m_best_fitness;
     };
@@ -83,7 +89,7 @@ class Schedule : public Course
 
     void optimize         ();        
     void display_stats    (const state_t &state, int iter);
-    void save_scheds      (const state_t &state);
+    void save_scheds      (state_t &state);
     void write_html       (std::ofstream &file, std::map<std::string, Week> &mapstr_cal);
     int duration          ();
 
@@ -102,12 +108,12 @@ class Schedule : public Course
 namespace
 {
   // permutation and evaluation
-  const double TEMP_INIT = 1.0e+1;     // 10
-  const double TEMP_MIN  = 1.0e-5;     // 1.0e-5
+  const double TEMP_INIT  = 1.0e+1;     
+  const double TEMP_MIN   = 1.0e-5; 
 
-  const double CMUL_ROOM = 1.0;
   const double CMUL_AVOID = 1.0;
   const double CMUL_INSTR = 1.0;
+  const double CMUL_ROOM  = 1.0;
 }
 
 #endif // !defined(SCHEDULE_HPP)

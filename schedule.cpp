@@ -65,40 +65,23 @@ void Schedule::optimize()
   int i;
 
   health_t health;
-
-  string str;
-
+  
   state_t cur_state;
   state_t best_state;
 
   best_state.health.init();
 
-  map<string, course_t> crs_name_idx;
-  map<string, course_t>::iterator course_it;
-
-  map<string, room_t>::iterator room_it;
-
-
-  // for referencing constant courses by name rather than id
-  for (course_it = m_mapstr_const_course.begin(); course_it != m_mapstr_const_course.end(); course_it++) {
-    str = (*course_it).second.name;
-    crs_name_idx[str] = (*course_it).second;
-
-    crs_name_idx[str].bs_sched |=
-      make_bitsched(crs_name_idx[str].start_time,
-                    crs_name_idx[str].end_time,
-                    crs_name_idx[str].days);
-  }
 
   // index courses through a vector
-  for (course_it = m_mapstr_course.begin(); course_it != m_mapstr_course.end(); course_it++) {
-    best_state.vec_crs.push_back((*course_it).second);
+  for (map<string, course_t>::iterator it = m_mapstr_course.begin(); 
+       it != m_mapstr_course.end(); 
+       it++) 
+  {
+    best_state.vec_crs.push_back(it->second);
   }
 
   assert(best_state.vec_crs.size());
   cur_state.vec_crs.resize(best_state.vec_crs.size());
-
-  state_t i_state;
 
   cout.precision(1);
 
@@ -109,7 +92,7 @@ void Schedule::optimize()
   for (i = 0; ; i++, temp *= reduction) {
     health.reset();
 
-    perturb_state(best_state, crs_name_idx, health, cur_state.vec_crs, my_rng);
+    perturb_state(best_state, health, cur_state.vec_crs, my_rng);
 
     cur_state.health = health;
     cur_state.health.fitness = static_cast<int>(cur_state.vec_crs.size()) - cur_state.health.sched;
@@ -130,14 +113,14 @@ void Schedule::optimize()
       if (temp < TEMP_MIN) {
         m_end_time = time(NULL);
         m_best_fitness = best_state.health.sched;
-        //save_scheds(best_state);
+        save_scheds(best_state);
         return;
       }
     } 
   } // end for
 }
 
-void Schedule::save_scheds(const state_t &state)
+void Schedule::save_scheds(state_t &state)
 {
   cout << endl;
 
@@ -188,13 +171,14 @@ void Schedule::save_scheds(const state_t &state)
 
   string group;
   string id;
-  string lects;
   string room_id;
   string str;
-  string yesno_str;
+  string str_yesno;
 
   bs_t bs;
   bs_t times;
+
+  course_t course;
 
   uint8_t days;
   
@@ -202,98 +186,144 @@ void Schedule::save_scheds(const state_t &state)
   map<string, Week> mapstr_instr;
   map<string, Week> mapstr_room;
   
+  ofstream failed_scheds;
   ofstream group_html;
   ofstream instr_html;
   ofstream room_html;
   ofstream saved_scheds;
 
+  stringstream oss_lects;
+  stringstream oss_times;
 
-  if (file_exists("group.html") ||
+  oss_times.precision(1);
+
+
+  if (file_exists("failed.csv") ||
+      file_exists("group.html") ||
       file_exists("instr.html") ||
       file_exists("room.html")  ||
       file_exists("scheduled.csv")) 
   {
     while (true) {
       cout << endl << "Overwrite existing schedules (y/n)? ";
-      cin >> yesno_str;
+      cin >> str_yesno;
 
-      if (make_upper(yesno_str) == "Y") {
+      if (make_upper(str_yesno) == "Y") {
         break;
-
-      } else if (make_upper(yesno_str) == "N") {
+      }
+      
+      if (make_upper(str_yesno) == "N") {
         return;
       }
+
+      continue;
     }
   }
 
-  group_html.open("group.html");
-  instr_html.open("instr.html");
-  room_html.open("room.html");
-  saved_scheds.open("scheduled.csv");
+  failed_scheds.open  ("failed.csv");
+  group_html.open     ("group.html");
+  instr_html.open     ("instr.html");
+  room_html.open      ("room.html");
+  saved_scheds.open   ("scheduled.csv");
 
   saved_scheds.precision(1);
+
+  for (map<string, course_t>::iterator it=m_mapstr_const_course.begin();
+       it != m_mapstr_const_course.end();
+       it++)
+  {
+    it->second.health.reset();
+    state.vec_crs.push_back(it->second);
+  }
 
   // indices are built using an array of 7*48=336 m_week_t structures for all
   // groups, instructors, and rooms using the day and time as the index, for
   // example, monday (=1) at 15hrs (=30) = [1 * 48 + 30]
 
   for (i = 0; i < state.vec_crs.size(); i++) { // cycle through classes
-    if (state.vec_crs[i].health.avoid_colls ||
-        state.vec_crs[i].health.instr_colls ||
-        state.vec_crs[i].health.room_colls  ||
-        state.vec_crs[i].health.bias_fitness < 0)
-    {
+    course = state.vec_crs[i];
+
+    oss_lects.str("");
+    oss_times.str("");
+
+    if (course.lectures) {
+      oss_lects << course.lectures;
+    }
+
+    if (course.const_time) {
+      oss_times << fixed << course.start_time << "-" << course.end_time;
+    }
+
+    if (!can_schedule(course)) {
+      failed_scheds
+        << course.id                                            << ","
+        << course.name                                          << ","
+        << course.hours                                         << ","
+        << (course.is_lab ? "L" : "S")                          << ","
+        << (course.const_days ? flag_to_str(course.days) : "")  << ","
+        << oss_times.str()                                      << ","
+        << vec_to_str(course.vec_instr)                         << ","
+        << course.room_id                                       << ","
+        << "0"                                                  << ","
+        << oss_lects.str()                                      << ","
+        << course.group                                         << ","
+        << vec_to_str(course.vec_avoid)            
+        << endl;
+
       continue;
     }
 
-    bs          = state.vec_crs[i].bs_sched;
+    bs          = course.bs_sched;
     days        = static_cast<uint8_t>((bs >> 56).to_ulong());
     times       = (bs & MASK_TIME) >> 16;
     start_time  = 16 + get_firstbitpos(times);
     blocks      = static_cast<int>((times).count());
     
-    id          = state.vec_crs[i].id;
-    room_id     = state.vec_crs[i].room_id;
-    group       = state.vec_crs[i].group;
-    
-    if (state.vec_crs[i].lectures) {
-      lects = state.vec_crs[i].lectures;
-    }
+    id          = course.id;
+    room_id     = course.room_id;
+    group       = course.group;
 
-    saved_scheds << fixed
-                 << id                                                << ","
-                 << state.vec_crs[i].name                             << ","
-                 << state.vec_crs[i].hours                            << ","
-                 << (state.vec_crs[i].is_lab ? "L" : "S")             << ","
-                 << flag_to_str(days)                                 << ","
-                 << static_cast<double>(start_time / 2.0)             << "-"
-                 << static_cast<double>((start_time + blocks) / 2.0)  << ","
-                 << vec_to_str(state.vec_crs[i].vec_instr)            << ","
-                 << room_id                                           << ","
-                 << "0"                                               << ","
-                 << lects                                             << ","
-                 << group                                             << ","
-                 << vec_to_str(state.vec_crs[i].vec_avoid)            << endl;
+    saved_scheds 
+      << fixed
+      << id                                               << ","
+      << course.name                                      << ","
+      << course.hours                                     << ","
+      << (course.is_lab ? "L" : "S")                      << ","
+      << flag_to_str(days)                                << "," 
+      << static_cast<double>(start_time / 2.0)            << "-" 
+      << static_cast<double>((start_time + blocks) / 2.0) << ","
+      << vec_to_str(course.vec_instr)                     << ","
+      << room_id                                          << ","
+      << "0"                                              << ","
+      << oss_lects.str()                                  << ","
+      << group                                            << ","
+      << vec_to_str(course.vec_avoid)            
+      << endl;
 
     for (j = 0; j < vec_bitpos_idx[days].size(); j++) { // cycle through bit-days
       idx = vec_bitpos_idx[days][j] + start_time;
 
-      for (k = 0; k < state.vec_crs[i].vec_instr.size(); k++) {
-        str = state.vec_crs[i].vec_instr[k];
+      for (k = 0; k < course.vec_instr.size(); k++) {
+        str = course.vec_instr[k];
         mapstr_instr[str].m_week_idx[idx].data = id + "<br>" + room_id;
         mapstr_instr[str].m_week_idx[idx].span = blocks;
       }
 
-      mapstr_room[room_id].m_week_idx[idx].data =
-        break_instr(state.vec_crs[i].vec_instr) + id;
-      mapstr_room[room_id].m_week_idx[idx].span = blocks;
+      if (room_id != "") {
+        mapstr_room[room_id].m_week_idx[idx].data = 
+          break_instr(course.vec_instr) + id;
+
+        mapstr_room[room_id].m_week_idx[idx].span = blocks;
+      }
 
       for (k = 1; k < blocks; k++) { // extend html table data element
-        for (l = 0; l < state.vec_crs[i].vec_instr.size(); l++) {
-          mapstr_instr[state.vec_crs[i].vec_instr[l]].m_week_idx[idx + k].data = "SPAN";
+        for (l = 0; l < course.vec_instr.size(); l++) {
+          mapstr_instr[course.vec_instr[l]].m_week_idx[idx + k].data = "SPAN";
         }
 
-        mapstr_room [room_id].m_week_idx[idx + k].data = "SPAN";
+        if (room_id != "") {
+          mapstr_room[room_id].m_week_idx[idx + k].data = "SPAN";
+        }
       }
     }
 
@@ -302,8 +332,9 @@ void Schedule::save_scheds(const state_t &state)
 
       for (j = 0; j < vec_bitpos_idx[days].size(); j++) {
         idx = vec_bitpos_idx[days][j] + start_time;
-        mapstr_group[str].m_week_idx[idx].data =
-          break_instr(state.vec_crs[i].vec_instr) + id + "<br>" + room_id;
+        mapstr_group[str].m_week_idx[idx].data = 
+          break_instr(course.vec_instr) + id + "<br>" + room_id;
+
         mapstr_group[str].m_week_idx[idx].span = blocks;
 
         for (k = 1; k < blocks; k++) {
@@ -337,22 +368,29 @@ void Schedule::write_html(ofstream &file, map<string, Week> &mapstr_cal)
   stringstream oss;
 
 
-  for (vector<string>::iterator it=m_vec_header.begin(); it != m_vec_header.end(); it++) {
-    file << (*it) << endl;
+  for (vector<string>::iterator it=m_vec_header.begin(); 
+       it != m_vec_header.end(); 
+       it++) 
+  {
+    file << *it << endl;
   }
 
-  for (map<string, Week>::iterator it = mapstr_cal.begin(); it != mapstr_cal.end(); it++) {
-    member = (*it).first;
-    file << "<h1>" << member << "</h1>\n"
-         << "<table>\n"
-         << "  <tr>\n"
-         << "    <th>Time</th>\n"
-         << "    <th>Monday</th>\n"
-         << "    <th>Tuesday</th>\n"
-         << "    <th>Wednesday</th>\n"
-         << "    <th>Thursday</th>\n"
-         << "    <th>Friday</th>\n"
-         << "  </tr>\n";
+  for (map<string, Week>::iterator it = mapstr_cal.begin(); 
+       it != mapstr_cal.end(); 
+       it++) 
+  {
+    member = it->first;
+    file 
+      << "<h1>" << member << "</h1>\n"
+      << "<table>\n"
+      << "  <tr>\n"
+      << "    <th>Time</th>\n"
+      << "    <th>Monday</th>\n"
+      << "    <th>Tuesday</th>\n"
+      << "    <th>Wednesday</th>\n"
+      << "    <th>Thursday</th>\n"
+      << "    <th>Friday</th>\n"
+      << "  </tr>\n";
 
     for (int i = 0; i < 26; i++) {
       if ((time = 8 + ( i / 2)) > 12) {
@@ -368,7 +406,7 @@ void Schedule::write_html(ofstream &file, map<string, Week> &mapstr_cal)
         str  = mapstr_cal[member].m_week_idx[idx].data;
         span = mapstr_cal[member].m_week_idx[idx].span;
 
-        if (span > 0) {
+        if (span) {
           file << "    <td rowspan=\"" << span << "\">" << str << "</td>\n";
 
         } else if (str != "SPAN") {
@@ -392,19 +430,19 @@ int Schedule::duration()
 
 void Schedule::display_stats(const state_t &state, int iter)
 {
-  cout << ""
-       << "iter = " << right << iter
-       << " fit: "
-       << "(a=" << state.health.avoid_colls
-       << " i=" << state.health.instr_colls
-       << " r=" << state.health.room_colls << ") "
-       << " ( " << state.health.sched << " / " << state.vec_crs.size() << " )"
-       << endl << endl;
+  cout 
+    << ""
+    << "iter = " << right << iter
+    << " fit: "
+    << "(a=" << state.health.avoid_colls
+    << " i=" << state.health.instr_colls
+    << " r=" << state.health.room_colls << ") "
+    << " ( " << state.health.sched << " / " << state.vec_crs.size() << " )"
+    << endl << endl;
 }
 
 void Schedule::get_bitsched(
   course_t              &course,
-  map<string, course_t> &crs_name_idx,
   map<string, bs_t>     &u_crs_idx,
   map<string, bs_t>     &u_instr_idx,
   map<string, bs_t>     &u_room_idx,
@@ -415,13 +453,11 @@ void Schedule::get_bitsched(
   int instr_colls;
   int room_colls;
 
+  bs_t bs;
+  pfit_t pfit;
   size_t idx;
 
   string str;
-
-  bs_t bs;
-  
-  pfit_t pfit;
 
   vector<pfit_t> ptime;
 
@@ -436,30 +472,17 @@ void Schedule::get_bitsched(
 
     for (j = 0; j < course.vec_avoid.size(); j++) {
       str = course.vec_avoid[j];
-
-      if (crs_name_idx.find(str) != crs_name_idx.end()) {
-        avoid_colls += num_conflicts(crs_name_idx[str].bs_sched & bs);
-
-      } else if (u_crs_idx.find(str) != u_crs_idx.end()) {
-        avoid_colls += num_conflicts(u_crs_idx[str] & bs);
-      }
+      avoid_colls += num_conflicts(u_crs_idx[str] & bs);
     }
 
-    if (u_room_idx.find(course.room_id) != u_room_idx.end()) {
-      room_colls += num_conflicts(u_room_idx[course.room_id] & bs);
-    }
+    room_colls += num_conflicts(u_room_idx[course.room_id] & bs);
 
     for (j = 0; j < course.vec_instr.size(); j++) {
       str = course.vec_instr[j];
-
-      if (u_instr_idx.find(str) != u_instr_idx.end()) {
-        instr_colls += num_conflicts(u_instr_idx[str] & bs);
-      }
+      instr_colls += num_conflicts(u_instr_idx[str] & bs);
     }
 
-    if (u_room_idx.find(course.room_id) != u_room_idx.end()) {
-      course.health.room_colls += num_conflicts(u_room_idx[course.room_id] & bs);
-    }
+    course.health.room_colls += num_conflicts(u_room_idx[course.room_id] & bs);
 
     pfit.bs = bs;
     pfit.health.avoid_colls = avoid_colls;
@@ -482,7 +505,7 @@ void Schedule::get_bitsched(
   course.health.instr_colls = ptime[idx].health.instr_colls;
   course.health.room_colls  = ptime[idx].health.room_colls;
   
-  u_crs_idx[course.name] |= course.bs_sched;
+  u_crs_idx[course.name] |= course.bs_sched; 
   u_room_idx[course.room_id] |= course.bs_sched;
 
   for (j = 0; j < course.vec_instr.size(); j++) {
@@ -492,13 +515,10 @@ void Schedule::get_bitsched(
 
 void Schedule::perturb_state(
   const state_t         &const_state,
-  map<string, course_t> &crs_name_idx,
   health_t              &health,
   vector<course_t>      &cur_state,
   boost::mt19937        &my_rng)
 {
-  bool room_change;
-
   course_t course;
 
   int i, j;
@@ -525,49 +545,46 @@ void Schedule::perturb_state(
   map<string, bs_t> u_instr_idx;
   map<string, bs_t> u_room_idx;
 
-  map<string, course_t>::iterator course_it;
-
 
   // set constants for room and instructor times in indices
-  for (course_it = m_mapstr_const_course.begin(); course_it != m_mapstr_const_course.end(); course_it++) {
-    if ((*course_it).second.room_id != "") {
-      u_room_idx[(*course_it).second.room_id] = (*course_it).second.bs_sched;
+  for (map<string, course_t>::iterator it = m_mapstr_const_course.begin(); 
+       it != m_mapstr_const_course.end(); 
+       it++) 
+  {
+    if (it->second.room_id != "") {
+      u_room_idx[it->second.room_id] |= it->second.bs_sched;
     }
 
-    for (i = 0; i < (*course_it).second.vec_instr.size(); i++) {
-      u_instr_idx[(*course_it).second.vec_instr[i]] = (*course_it).second.bs_sched;
+    for (i = 0; i < it->second.vec_instr.size(); i++) {
+      u_instr_idx[it->second.vec_instr[i]] |= it->second.bs_sched;
     }
+
+    u_crs_idx[it->second.name] |= it->second.bs_sched;
   }
 
   for (i = 0; i < state.vec_crs.size(); i++) {
-    course      = state.vec_crs[i];
-    room_change = false;
+    course = state.vec_crs[i];
 
-    if (!course.const_room && (course.health.buf_fitness || course.room_id == "")) {
-      idx = 0;
+    if (!course.const_room) {
+      idx = my_rng() % course.vec_prooms.size();
 
       if (course.vec_prooms[idx].id != course.room_id) {
-        room_change = true;
         course.room_id = course.vec_prooms[idx].id;
         course.health.buf_fitness = abs(options[OPT_ROOMBUFF] - (course.vec_prooms[idx].size - course.size));
       }
     }
 
-    if (room_change                     ||
-        course.bs_sched.none()          ||
-        course.health.bias_fitness < 0  ||
-        course.health.fitness > 0) 
-    {
-      get_bitsched(course, crs_name_idx, u_crs_idx, u_instr_idx, u_room_idx, my_rng);
-      course.health.bias_fitness = 0;
+    get_bitsched(course, u_crs_idx, u_instr_idx, u_room_idx, my_rng);
 
-      for (j = 0; j < course.vec_instr.size(); j++) {
-        course.health.bias_fitness += get_bias(course.vec_instr[j], course.bs_sched);
-      }
+    course.health.bias_fitness = 0;
 
-      if (get_bias("ALL", course.bs_sched) == SCORE_VOID) {
-        course.health.bias_fitness -= SCORE_VOID;
-      }
+    // TODO: compute from get_bitsched?
+    for (j = 0; j < course.vec_instr.size(); j++) {
+      course.health.bias_fitness += get_bias(course.vec_instr[j], course.bs_sched);
+    }
+
+    if (get_bias("ALL", course.bs_sched) == SCORE_VOID) {
+      course.health.bias_fitness -= SCORE_VOID;
     }
 
     // sanity check!
@@ -590,11 +607,7 @@ void Schedule::perturb_state(
     health.instr_colls  += course.health.instr_colls;
     health.late_penalty += ((course.bs_sched & MASK_TIME) >> 16).to_ulong();
     health.room_colls   += course.health.room_colls;
-    health.sched        += !(course.health.avoid_colls  || 
-                             course.health.instr_colls  ||
-                             course.health.room_colls   ||
-                             course.health.bias_fitness  < 0)
-                         ? 1 : 0;
+    health.sched        += can_schedule(course) ? 1 : 0;
     
     cur_state[i] = course;
   }

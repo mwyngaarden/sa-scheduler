@@ -17,8 +17,8 @@
  */
 
 #include <cassert>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 #include "debug.hpp"

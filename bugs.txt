@@ -1,2 +1,0 @@
-group conflicts
-const courses not accounted for correctly

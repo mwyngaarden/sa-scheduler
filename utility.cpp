@@ -143,8 +143,7 @@ int day_to_int(const std::string &day)
 
 string flag_to_str(uint8_t days)
 {
-  assert(days & 0x3e);
-  assert(!(days & 0xc1));
+  assert(days);
   
   string ret_str;
 

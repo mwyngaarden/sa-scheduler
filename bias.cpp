@@ -21,8 +21,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "debug.hpp"
 #include "bias.hpp"
+#include "debug.hpp"
 #include "schedule.hpp"
 #include "utility.hpp"
 
@@ -161,8 +161,7 @@ int Bias::get_bias(
   assert(start_time < 24.0);
   assert(end_time > start_time);
   assert(end_time <= 24.0);
-  assert(days & 0x3e);
-  assert(!(days & ~0x3e));
+  assert(days);
 
   if (m_mapstr_bias.find(instr) == m_mapstr_bias.end()) {
     return 0;
@@ -225,8 +224,7 @@ void Bias::set_bias(
   assert(start_time < 24.0);
   assert(end_time > start_time);
   assert(end_time <= 24.0);
-  assert(days & 0x3e);
-  assert(!(days & ~0x3e));
+  assert(days);
 
   int idx;
 

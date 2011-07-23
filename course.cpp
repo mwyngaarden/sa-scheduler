@@ -37,12 +37,12 @@ Course::Course() : Bias(), Room()
 
   size_t found;
 
-  string read_str;
-  string str;
-  string str_util;
   string avoid;
   string instr;
+  string read_str;
   string room_type;
+  string str;
+  string str_util;
 
   uint32_t flag;
 
@@ -307,8 +307,8 @@ bool Course::push_course(course_t &course)
     }
   
     for (it = begin_it; it != end_it; it++) {
-      if ((*it).second.size >= course.size) {
-        course.vec_prooms.push_back((*it).second);
+      if (it->second.size >= course.size) {
+        course.vec_prooms.push_back(it->second);
       }
     }
   }
@@ -364,7 +364,7 @@ bool Course::push_course(course_t &course)
 
     for (j = 0; j < m_mapstr_groups[group].size(); j++) {
       str = m_mapstr_groups[group][j];
-      if (find(course.vec_avoid.begin(), course.vec_avoid.end(), str) == course.vec_avoid.end()  && str != course.id) {
+      if (find(course.vec_avoid.begin(), course.vec_avoid.end(), str) == course.vec_avoid.end() && str != course.id) { // necessary?
         course.vec_avoid.push_back(str);
       }
     }
@@ -374,11 +374,13 @@ bool Course::push_course(course_t &course)
   return false;
 }
 
-bool Course::push_const_course(course_t & course)
+bool Course::push_const_course(course_t &course)
 {
   if (m_mapstr_const_course.find(course.id) != m_mapstr_const_course.end()) {
     return true;
   }
+
+  course.bs_sched = make_bitsched(course.start_time, course.end_time, course.days);
 
   m_mapstr_const_course[course.id] = course;
   return false;

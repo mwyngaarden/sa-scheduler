@@ -47,7 +47,8 @@ int main(int argc, char *argv[])
     // command line only options
     po::options_description common("Command line options");
     common.add_options()
-      ("config,c", po::value<string>(&config_file)->default_value("sched.cfg"),
+      ("config,c", 
+       po::value<string>(&config_file)->default_value("sched.cfg"),
        "configuration file")
       ("help,h", "produce help message");
     
