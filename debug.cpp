@@ -28,12 +28,11 @@ void Debug::live_or_die()
   string str;
 
 
-  if (m_vec_warnings.size() || m_vec_errors.size()) {
-    debug_log.open("debug.log", ios::app);
-
-  } else {
+  if (!m_vec_warnings.size() && !m_vec_errors.size()) {
     return;
   }
+  
+  debug_log.open("debug.log", ios::app);
 
   while (m_vec_warnings.size()) {
     str = m_vec_warnings.back();
@@ -61,7 +60,7 @@ void Debug::push_error(std::string str)
 {
   time_t rawtime;
   time(&rawtime);
-  std::string push_str = asctime(localtime(&rawtime));
+  string push_str = asctime(localtime(&rawtime));
   push_str += "  ERROR: " + str;
   m_vec_errors.push_back(push_str);
 };
@@ -70,7 +69,7 @@ void Debug::push_warning(std::string str)
 {
   time_t rawtime;
   time(&rawtime);
-  std::string push_str = asctime(localtime(&rawtime));
+  string push_str = asctime(localtime(&rawtime));
   push_str += "  WARNING: " + str;
   m_vec_warnings.push_back(push_str);
 };

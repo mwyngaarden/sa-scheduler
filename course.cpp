@@ -178,19 +178,32 @@ Course::Course() : Bias(), Room()
 
     // days
     if (str != "") {
-      for (i = 0; i < token_count(str, ":"); i++) {
-        str_util = get_token(str, i, ":");
-        found = VALID_DAYS.find(str_util);
+      if (token_count(str, "/") > 1) {
+        course.multi_days = true;
+        course.vec_days.resize(token_count(str, "/"), 0);
+      }
 
-        if (found == string::npos || found % 3 != 0 || str_util.size() != 3) {
-          oss << "Invalid course days at line " << line
-              << ": invalid format";
-          debug.push_error(oss.str());
-          oss.str("");
-          continue;
+      for (j = 0; j < token_count(str, "/"); j++) {
+        for (i = 0; i < token_count(get_token(str, j, "/"), ":"); i++) {
+          str_util = get_token(get_token(str, j, "/"), i, ":");
+          found = VALID_DAYS.find(str_util);
+
+          if (found == string::npos || found % 3 != 0 || str_util.size() != 3) {
+            oss << "Invalid course days at line " << line
+                << ": invalid format";
+            debug.push_error(oss.str());
+            oss.str("");
+            continue;
+          }
+
+          if (course.multi_days) {
+            course.vec_days[j] |= day_to_flag(str_util);
+          
+          } else {
+            course.days |= day_to_flag(str_util);
+          }
         }
 
-        course.days |= day_to_flag(str_util);
       }
 
       flag |= COURSE_DAYS;
@@ -244,7 +257,9 @@ Course::Course() : Bias(), Room()
       course.vec_instr.push_back(get_token(instr, i, ":"));
     }
 
-    if (!((COURSE_TIMES|COURSE_DAYS) & ~flag) && !course.size) {
+    if ((!((COURSE_TIMES|COURSE_DAYS) & ~flag) && !course.size) || 
+        !((COURSE_TIMES|COURSE_DAYS|COURSE_ROOM) & ~flag)) 
+    {
       if (push_const_course(course)) {
         oss << "Invalid course description at line " << line
             << ": duplicate";
@@ -285,7 +300,7 @@ bool Course::push_course(course_t &course)
 
   double k;
 
-  int i, j;
+  int i, j, l;
 
   bs_t bs;
 
@@ -296,7 +311,34 @@ bool Course::push_course(course_t &course)
   map<string, room_t>::iterator end_it;
   map<string, room_t>::iterator it;
 
-  if (!course.const_room) {
+  stringstream oss;
+
+
+  // test for multiple room entries
+  if (course.const_room && token_count(course.room_id, ":") > 1) {
+    Debug debug;
+    course.const_room = false; // must be false or vec_prooms wont be looked at
+
+    for (i = 0; i < token_count(course.room_id, ":"); i++) {
+      str = get_token(course.room_id, i, ":");
+      if (m_mapstr_labrooms.find(str) != m_mapstr_labrooms.end()) {
+        course.vec_prooms.push_back(m_mapstr_labrooms[str]);
+      
+      } else if (m_mapstr_stdrooms.find(str) != m_mapstr_stdrooms.end()) { 
+        course.vec_prooms.push_back(m_mapstr_stdrooms[str]);
+      
+      } else {
+        oss << "Invalid room for " << course.id << ": " << str;
+        debug.push_error(oss.str());
+        oss.str("");
+      }
+    }
+
+    course.room_id = "";
+
+    debug.live_or_die();
+
+  } else if (!course.const_room) {
     if (course.is_lab) {
       begin_it = m_mapstr_labrooms.begin();
       end_it   = m_mapstr_labrooms.end();
@@ -324,15 +366,30 @@ bool Course::push_course(course_t &course)
     }
 
   } else if (course.const_time && course.const_days) {
-    course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.days));
+    if (course.multi_days) {
+      for (i = 0; i < course.vec_days.size(); i++) {
+        course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.vec_days[i]));
+      }
+    } else {
+      course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.days));
+    }
 
   } else if (course.is_lab && options[OPT_CONTIGLABS]) {
     for (i = 0; i < 5; i++)
       for (k = options[OPT_CLABSTIME]; k + course.hours <= options[OPT_CLABETIME]; k += 0.5) {
         bs = make_bitsched(k, k + course.hours, 2 << i);
 
-        if (!(course.const_time && ((make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME).any()) && // dummy day
-            !(course.const_days && ((make_bitsched(12.0, 13.0, course.days) ^ bs) & MASK_DAY).any())) // dummy time
+        if (course.multi_days) {
+          for (l = 0; l < course.vec_days.size(); l++) {
+            if (!(course.const_time && ((make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME).any()) && // dummy day
+                !(course.const_days && ((make_bitsched(12.0, 13.0, course.vec_days[l]) ^ bs) & MASK_DAY).any())) // dummy time
+            { 
+              course.vec_avail_times.push_back(bs);
+            }
+          }
+
+        } else if (!(course.const_time && ((make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME).any()) && // dummy day
+                   !(course.const_days && ((make_bitsched(12.0, 13.0, course.days) ^ bs) & MASK_DAY).any())) // dummy time
         { 
           course.vec_avail_times.push_back(bs);
         }
@@ -346,6 +403,14 @@ bool Course::push_course(course_t &course)
         course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
       }
 
+  } else if (course.multi_days) {
+    for (l = 0; l < course.vec_days.size(); l++) {
+      for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
+        if ((sched_bs_idx[course.hours][i] >> 56 ^ static_cast<bs_t>(course.vec_days[l])).none()) {
+          course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
+        } 
+    }
+  
   } else if (course.const_days) {
     for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
       if ((sched_bs_idx[course.hours][i] >> 56 ^ static_cast<bs_t>(course.days)).none()) {

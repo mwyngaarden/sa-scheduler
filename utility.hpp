@@ -83,6 +83,7 @@ class health_t
       late_penalty = 0;
       room_colls   = 0;
       sched        = 0;
+
       fitness      = 0;
       ffit         = 0;
     };
@@ -95,6 +96,7 @@ class health_t
       late_penalty =  INF;
       room_colls   =  INF;
       sched        = -INF;
+
       fitness      =  1.0e+30;
       ffit         =  1.0e+30;
     };
@@ -106,6 +108,7 @@ class health_t
     int late_penalty;
     int room_colls;
     int sched;
+
     double fitness;
     double ffit;
 };
@@ -124,6 +127,7 @@ class course_t
       id           = "";
       is_lab       = false;
       lectures     = 0;
+      multi_days   = false;
       name         = "";
       room_id      = "";
       size         = 0;
@@ -132,6 +136,7 @@ class course_t
       health.init();
       vec_avail_times.clear();
       vec_avoid.clear();
+      vec_days.clear();
       vec_instr.clear();
       vec_prooms.clear();
     };
@@ -140,21 +145,30 @@ class course_t
     bool const_room;
     bool const_time;
     bool is_lab;
+    bool multi_days;
+
     double end_time;
     double start_time;
+
     health_t health;
+
     int hours;
     int lectures;
     int size;
+
     std::bitset<64> bs_sched;
+
     std::string group;
     std::string id;
     std::string name;
     std::string room_id;
+
     std::vector<bs_t> vec_avail_times;
     std::vector<std::string> vec_avoid;
     std::vector<std::string> vec_instr;
     std::vector<room_t> vec_prooms;
+    std::vector<uint8_t> vec_days;
+
     uint8_t days;
 };
 
@@ -301,6 +315,7 @@ int token_count           (const std::string &str, std::string tok);
 std::string get_token     (const std::string &str, int n, std::string delim);
 std::string make_upper    (const std::string &str);
 std::string break_instr   (const std::vector<std::string> &vec_instr);
+std::string break_days    (const std::vector<uint8_t> &vec_days);
 
 uint8_t day_to_flag       (const std::string &day);
 int day_to_int            (const std::string &day);

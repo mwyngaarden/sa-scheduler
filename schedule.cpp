@@ -260,7 +260,12 @@ void Schedule::save_scheds(state_t &state)
         << course.name                                          << ","
         << course.hours                                         << ","
         << (course.is_lab ? "L" : "S")                          << ","
-        << (course.const_days ? flag_to_str(course.days) : "")  << ","
+        << (course.const_days 
+            ? (course.multi_days 
+               ? break_days(course.vec_days) 
+               : flag_to_str(course.days)) 
+            : "")  
+        << ","
         << oss_times.str()                                      << ","
         << vec_to_str(course.vec_instr)                         << ","
         << course.room_id                                       << ","

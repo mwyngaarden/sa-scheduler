@@ -111,6 +111,21 @@ string break_instr(const vector<string> &vec_instr)
   return ret_str;
 }
 
+string break_days(const vector<uint8_t> &vec_days)
+{
+  assert(vec_days.size());
+
+  string ret_str;
+
+  for (int i = 0; i < vec_days.size(); i++) {
+    ret_str += "/" + flag_to_str(vec_days[i]);
+  }
+
+  ret_str.erase(0, 1);
+
+  return ret_str;
+}
+
 bool file_exists(const char *file)
 {
   fstream myfile(file);
