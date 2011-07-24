@@ -21,113 +21,106 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
-#include <boost/program_options.hpp>
 
 #include "debug.hpp"
 #include "schedule.hpp"
 #include "utility.hpp"
 
 using namespace std;
-namespace po = boost::program_options;
 
 
 int main(int argc, char *argv[])
 {
   cout << endl
        << "SACS, a Simulated Annealing Class Scheduler" << endl
-       << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" << endl 
-       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME << endl 
-       << endl;
+       << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" 
+       << endl << endl 
+       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME 
+       << endl << endl;
 
-  try {
-    string config_file;
+  prog_opts["BUFFER"]          = "4";
+  prog_opts["CONTIGUOUS-LABS"] = "TRUE";
+  prog_opts["LAB-START-TIME"]  = "8";
+  prog_opts["LAB-END-TIME"]    = "21";
+  prog_opts["POLL"]            = "10";
+  prog_opts["REDUCTION"]       = "0.99";
+  prog_opts["VERBOSE"]         = "TRUE";
 
-    
-    // command line only options
-    po::options_description common("Command line options");
-    common.add_options()
-      ("config,c", 
-       po::value<string>(&config_file)->default_value("sched.cfg"),
-       "configuration file")
-      ("help,h", "produce help message");
-    
-    // command line and configuration file options
-    po::options_description config("Configuration");
-    config.add_options()
-      ("buffer,b", 
-       po::value<int>(&options[OPT_ROOMBUFF])->default_value(4),
-       "room size buffer")
+  size_t found;
 
-      ("contiguous-labs,l", 
-       po::value<int>(&options[OPT_CONTIGLABS])->default_value(1),
-       "schedule labs in single blocks")
+  string str;
+  string option;
+  string value;
 
-      ("lab-end-time,n",    
-       po::value<int>(&options[OPT_CLABETIME])->default_value(21),
-       "end time for contiguous labs")
+  fstream config_file;
 
-      ("lab-start-time,l",  
-       po::value<int>(&options[OPT_CLABSTIME])->default_value(8),
-       "start time for contiguous labs")
+  stringstream oss;
 
-      ("poll,p",            
-       po::value<int>(&options[OPT_POLLINTVL])->default_value(10),
-       "interval between status updates")
+  Debug debug;
 
-      ("reduction,r",       
-       po::value<int>(&options[OPT_TEMPRED])->default_value(990000),
-       "temperature reduction per iteration")
+  config_file.open(FILE_CONFIG);
 
-      ("verbose,v",         
-       po::value<int>(&options[OPT_VERBOSE])->default_value(1),
-       "output status updates");
-    
-    po::options_description cmdline_options;
-    cmdline_options.add(common).add(config);
-    
-    po::options_description config_file_options;
-    config_file_options.add(config);
-    
-    po::options_description visible("Allowed options");
-    visible.add(common).add(config);
-    
-    po::variables_map vm;
-    store(po::command_line_parser(argc, argv).options(cmdline_options).run(), vm);
-    
-    notify(vm);
-    ifstream ifs(config_file.c_str());
+  if (!config_file.is_open()) {
+    cout << "Configuration file not available: using defaults!" << endl;
+   
+  } else { // read options from file
+     while(getline(config_file, str)) {
+       if (str.empty()) {
+         continue;
+       }
 
-    if (!ifs) {
-      cout << "Unable to open " << config_file << endl;
-      return 0;
+       str = make_upper(str);
+
+       // remove whitespace
+      found = str.find(" ");
+      while (found != string::npos) {
+	    str.erase(found, 1);
+	    found = str.find(" ");
+      }
+
+      if (str.substr(0, 1) == "#") {
+        continue;
+      }
+
+      option = get_token(str, 0, "=");
+      value  = get_token(str, 1, "=");
+        
+      if (option == "" || value == "") {
+         continue;
+      }
+
+      if (prog_opts.find(option) == prog_opts.end()) {
+        oss << "Invalid option: " << option;
+        debug.push_error(oss.str());
+        oss.str("");
+        
+      } else {
+        prog_opts[option] = value;
+      }
     }
-
-    store(parse_config_file(ifs, config_file_options), vm);
-    notify(vm);
-
-    if (vm.count("help")) {
-      cout << visible << endl;
-      return 0;
-    }
-
-    util_init();
-    Schedule sched;
-
-    cout << endl << "Optimizing schedule..." << endl << endl;
-
-    sched.optimize();
-
-    cout << endl 
-         << "Optimization complete (" << sched.duration() << " seconds)" 
-         << endl << endl;
-
-    system("pause");
-
-  } catch (exception &e) {
-    cout << "Exception: " << e.what() << endl;
-    return 1;
   }
+
+  config_file.close();
+
+  debug.live_or_die();
+
+
+  util_init();
+  Schedule sched;
+
+  cout << endl << "Optimizing schedule..." << endl << endl;
+
+  sched.optimize();
+
+  cout << endl 
+       << "Optimization complete (" << sched.duration() << " seconds)" 
+       << endl << endl;
+
+  system("pause");
+
+ 
 
   return 0;
 }

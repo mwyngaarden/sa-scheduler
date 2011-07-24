@@ -30,7 +30,7 @@ using namespace std;
 
 Room::Room()
 {
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << setw(36) << left << "Reading room profiles... ";
   }
 
@@ -128,7 +128,7 @@ Room::Room()
 
   room_file.close();
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << "done" << endl;
   }
 

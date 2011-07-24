@@ -27,7 +27,6 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include <boost/random/mersenne_twister.hpp>
 
 
 typedef std::bitset<64> bs_t;
@@ -43,11 +42,67 @@ const std::string FILE_COURSE = "courses.csv";
 const std::string FILE_GROUP  = "groups.csv";
 const std::string FILE_HTML   = "html_header.txt";
 const std::string FILE_ROOM   = "rooms.csv";
+const std::string FILE_CONFIG = "sched.cfg";
 
 const std::string VALID_DAYS = "SUNMONTUEWEDTHUFRISATALL";
 
 const int SCORE_VOID = -100000;
 const int INF = 0x7fffffff;
+
+// Mersenne Twister
+class prng_t {
+  public:
+    prng_t() {
+      seed(0x84db26a9); // default seed
+    }
+
+    prng_t(uint32_t s) {
+      seed(s);
+    };
+
+    void seed(uint32_t s) {
+      MT[0] = s;
+      for (int i = 1; i < 624; i++) {
+        MT[i] = 0x6c078965 * (MT[i-1] >> 30 ^ MT[i-1]) + i;
+      }
+
+      index = -1;
+    };
+
+    inline uint32_t operator()() {
+      
+      uint32_t y;
+
+      index++;
+
+      if (index > 623) {
+        index = 0;
+      }
+
+      if (!index) {
+        for (int i = 0; i < 624; i++) {
+          y = (MT[i] & 0x80000000) | (MT[(i + 1) % 624] & 0x7fffffff);
+          MT[i] = MT[(i + 397) % 624] ^ y >> 1;
+
+          if (y & 0x1) {
+            MT[i] ^= 0x9908b0df;
+          }
+        }
+      }
+
+      y = MT[index];
+      y ^= y >> 11;
+      y ^= y <<  7 & 0x9d2c5680;
+      y ^= y << 15 & 0xefc60000;
+      y ^= y >> 18;
+
+      return y;      
+    };
+
+  private:
+    uint32_t MT[624];
+    int index;
+};
 
 enum e_bias {
   AVR6, AVR5, AVR4, AVR3, AVR2, AVR1,
@@ -323,7 +378,7 @@ std::string flag_to_str   (uint8_t days);
 std::string vec_to_str    (const std::vector<std::string> &vec_instr);
 std::string hex_to_bin    (char hex);
 
-extern int options[OPT_TOTOPTS];
+extern std::map<std::string, std::string> prog_opts;
 extern std::vector<std::vector<int> > vec_bitpos_idx;
 extern std::vector<std::vector<bs_t> > sched_bs_idx;
 
@@ -353,7 +408,7 @@ inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
   return bs;
 };
 
-inline double rand_unitintvl(boost::mt19937 &rng)
+inline double rand_unitintvl(prng_t &rng)
 {
   return (rng() & 0x7fffffff) / 2147483648.0;
 }

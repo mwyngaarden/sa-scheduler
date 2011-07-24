@@ -53,9 +53,8 @@ Schedule::Schedule() : Course()
 
 void Schedule::optimize()
 {
-  boost::mt19937 my_rng;
+  prng_t my_rng(m_rng());
 
-  my_rng.seed(m_rng());
   m_start_time = time(NULL);
 
   double delta;
@@ -63,6 +62,7 @@ void Schedule::optimize()
   double temp;
 
   int i;
+  int poll_intvl = atoi(prog_opts["POLL"].c_str());
 
   health_t health;
   
@@ -86,7 +86,7 @@ void Schedule::optimize()
   cout.precision(1);
 
   // begin annealing
-  reduction = options[OPT_TEMPRED] / 1000000.0;
+  reduction = atof(prog_opts["REDUCTION"].c_str());
   temp = TEMP_INIT;
 
   for (i = 0; ; i++, temp *= reduction) {
@@ -104,9 +104,9 @@ void Schedule::optimize()
       best_state = cur_state;
     }
 
-    if (!((i + 1) % options[OPT_POLLINTVL])) {
-      if (options[OPT_VERBOSE]) {
-        cout << fixed << scientific << "temp = " << temp << endl;
+    if (!((i + 1) % poll_intvl)) {
+      if (prog_opts["VERBOSE"] == "TRUE") {
+        cout << fixed << scientific << "temperature = " << temp << endl;
         display_stats(best_state, i + 1);
       }
 
@@ -353,7 +353,7 @@ void Schedule::save_scheds(state_t &state)
   write_html(instr_html, mapstr_instr);
   write_html(room_html, mapstr_room);
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << endl << "Schedules saved!" << endl << endl;
   }
 
@@ -437,11 +437,11 @@ void Schedule::display_stats(const state_t &state, int iter)
 {
   cout 
     << ""
-    << "iter = " << right << iter
-    << " fit: "
-    << "(a=" << state.health.avoid_colls
-    << " i=" << state.health.instr_colls
-    << " r=" << state.health.room_colls << ") "
+    << "iteration = " << setw(6) << right << iter
+    << " fitness: ("
+    << " a = "  << setw(3) << state.health.avoid_colls
+    << "  i = " << setw(3) << state.health.instr_colls
+    << "  r = " << setw(3) << state.health.room_colls << " )"
     << " ( " << state.health.sched << " / " << state.vec_crs.size() << " )"
     << endl << endl;
 }
@@ -451,7 +451,7 @@ void Schedule::get_bitsched(
   map<string, bs_t>     &u_crs_idx,
   map<string, bs_t>     &u_instr_idx,
   map<string, bs_t>     &u_room_idx,
-  boost::mt19937        &my_rng)
+  prng_t                &my_rng)
 {
   int i, j;
   int avoid_colls;
@@ -522,12 +522,13 @@ void Schedule::perturb_state(
   const state_t         &const_state,
   health_t              &health,
   vector<course_t>      &cur_state,
-  boost::mt19937        &my_rng)
+  prng_t                &my_rng)
 {
   course_t course;
 
   int i, j;
   int idx;
+  int room_buf = atoi(prog_opts["BUFFER"].c_str());
 
   bs_t bs;
 
@@ -575,7 +576,7 @@ void Schedule::perturb_state(
 
       if (course.vec_prooms[idx].id != course.room_id) {
         course.room_id = course.vec_prooms[idx].id;
-        course.health.buf_fitness = abs(options[OPT_ROOMBUFF] - (course.vec_prooms[idx].size - course.size));
+        course.health.buf_fitness = abs(room_buf - (course.vec_prooms[idx].size - course.size));
       }
     }
 

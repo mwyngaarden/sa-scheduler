@@ -24,7 +24,6 @@
 #include <ctime>
 #include <fstream>
 #include <vector>
-#include <boost/random/mersenne_twister.hpp>
 
 #include "course.hpp"
 #include "debug.hpp"
@@ -41,13 +40,13 @@ class Schedule : public Course
       std::map<std::string, bs_t>     &u_crs_idx,
       std::map<std::string, bs_t>     &u_instr_idx,
       std::map<std::string, bs_t>     &u_room_idx,
-      boost::mt19937                  &my_rng);
+      prng_t                          &my_rng);
 
     void perturb_state(
       const state_t                   &state,
       health_t                        &health,
       std::vector<course_t>           &cur_state,
-      boost::mt19937                  &my_rng);
+      prng_t                          &my_rng);
 
     class Week
     {
@@ -97,7 +96,7 @@ class Schedule : public Course
     std::ifstream header_file;
     std::vector<std::string> m_vec_header;
 
-    boost::mt19937 m_rng;
+    prng_t m_rng;
 
     time_t m_end_time;
     time_t m_start_time;

@@ -52,7 +52,7 @@ Course::Course() : Bias(), Room()
 
   Debug debug;
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << setw(36) << left << "Reading group descriptions... ";
   }
 
@@ -91,13 +91,13 @@ Course::Course() : Bias(), Room()
 
   group_file.close();
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << "done" << endl;
   }
 
   debug.live_or_die();
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << setw(36) << left << "Reading course descriptions... ";
   }
 
@@ -285,7 +285,7 @@ Course::Course() : Bias(), Room()
 
   course_file.close();
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << "done" << endl;
   }
 
@@ -374,9 +374,12 @@ bool Course::push_course(course_t &course)
       course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.days));
     }
 
-  } else if (course.is_lab && options[OPT_CONTIGLABS]) {
+  } else if (course.is_lab && prog_opts["CONTIGUOUS-LABS"] == "TRUE") {
     for (i = 0; i < 5; i++)
-      for (k = options[OPT_CLABSTIME]; k + course.hours <= options[OPT_CLABETIME]; k += 0.5) {
+      for (k = atoi(prog_opts["LAB-START-TIME"].c_str()); 
+           k + course.hours <= atoi(prog_opts["LAB-END-TIME"].c_str()); 
+           k += 0.5) 
+      {
         bs = make_bitsched(k, k + course.hours, 2 << i);
 
         if (course.multi_days) {

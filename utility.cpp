@@ -24,7 +24,7 @@
 using namespace std;
 
 
-int options[OPT_TOTOPTS];
+map<string, string> prog_opts;
 vector<vector<int> > vec_bitpos_idx;
 vector<vector<bs_t> > sched_bs_idx;
 

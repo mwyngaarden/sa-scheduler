@@ -31,7 +31,7 @@ using namespace std;
 
 Bias::Bias()
 {
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << setw(36) << left << "Reading instructor preferences... ";
   }
 
@@ -145,7 +145,7 @@ Bias::Bias()
   bias_file.close();
   debug.live_or_die();
 
-  if (options[OPT_VERBOSE]) {
+  if (prog_opts["VERBOSE"] == "TRUE") {
     cout << "done" << endl;
   }
 }
