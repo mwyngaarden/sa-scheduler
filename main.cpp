@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
-#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -31,10 +29,9 @@
 using namespace std;
 
 
-int main(int argc, char *argv[])
+int main()
 {
-  cout << endl
-       << "SACS, a Simulated Annealing Class Scheduler" << endl
+  cout << "SACS, a Simulated Annealing Class Scheduler" << endl
        << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" 
        << endl << endl 
        << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME 
@@ -66,12 +63,12 @@ int main(int argc, char *argv[])
     cout << "Configuration file not available: using defaults!" << endl;
    
   } else { // read options from file
-     while(getline(config_file, str)) {
-       if (str.empty()) {
-         continue;
-       }
+    while(getline(config_file, str)) {
+      if (str.empty()) {
+        continue;
+      }
 
-       str = make_upper(str);
+      str = make_upper(str);
 
        // remove whitespace
       found = str.find(" ");
@@ -106,12 +103,11 @@ int main(int argc, char *argv[])
 
   debug.live_or_die();
 
-
   util_init();
   Schedule sched;
 
   cout << endl << "Optimizing schedule..." << endl << endl;
-
+  
   sched.optimize();
 
   cout << endl 
@@ -119,9 +115,7 @@ int main(int argc, char *argv[])
        << endl << endl;
 
   system("pause");
-
- 
-
+  
   return 0;
 }
 

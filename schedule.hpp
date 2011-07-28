@@ -21,7 +21,6 @@
 #define SCHEDULE_HPP
 
 #include <cassert>
-#include <ctime>
 #include <fstream>
 #include <vector>
 
@@ -39,8 +38,7 @@ class Schedule : public Course
       course_t                        &const_course,
       std::map<std::string, bs_t>     &u_crs_idx,
       std::map<std::string, bs_t>     &u_instr_idx,
-      std::map<std::string, bs_t>     &u_room_idx,
-      prng_t                          &my_rng);
+      std::map<std::string, bs_t>     &u_room_idx);
 
     void perturb_state(
       const state_t                   &state,
@@ -109,10 +107,6 @@ namespace
   // permutation and evaluation
   const double TEMP_INIT  = 1.0e+1;     
   const double TEMP_MIN   = 1.0e-5; 
-
-  const double CMUL_AVOID = 1.0;
-  const double CMUL_INSTR = 1.0;
-  const double CMUL_ROOM  = 1.0;
 }
 
 #endif // !defined(SCHEDULE_HPP)

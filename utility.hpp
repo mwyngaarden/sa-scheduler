@@ -29,6 +29,11 @@
 #include <vector>
 
 
+extern double CMUL_AVOID;
+extern double CMUL_INSTR;
+extern double CMUL_ROOM;
+
+
 typedef std::bitset<64> bs_t;
 const bs_t MASK_DAY   ("0011111000000000000000000000000000000000000000000000000000000000");
 const bs_t MASK_TIME  ("0000000000000000000000111111111111111111111111110000000000000000");
@@ -69,7 +74,7 @@ class prng_t {
       index = -1;
     };
 
-    inline uint32_t operator()() {
+    uint32_t operator()() {
       
       uint32_t y;
 
@@ -109,17 +114,6 @@ enum e_bias {
   OPEN,
   PRF1, PRF2, PRF3, PRF4, PRF5, PRF6,
   VOID
-};
-
-enum e_opts {
-  OPT_CLABETIME,
-  OPT_CLABSTIME,
-  OPT_CONTIGLABS,
-  OPT_POLLINTVL,
-  OPT_ROOMBUFF,
-  OPT_TEMPRED,
-  OPT_VERBOSE,
-  OPT_TOTOPTS
 };
 
 struct room_t {

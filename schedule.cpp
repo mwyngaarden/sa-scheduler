@@ -175,6 +175,8 @@ void Schedule::save_scheds(state_t &state)
   string str;
   string str_yesno;
 
+  bool repeat = true;
+
   bs_t bs;
   bs_t times;
 
@@ -204,19 +206,17 @@ void Schedule::save_scheds(state_t &state)
       file_exists("room.html")  ||
       file_exists("scheduled.csv")) 
   {
-    while (true) {
+    while (repeat) {
       cout << endl << "Overwrite existing schedules (y/n)? ";
       cin >> str_yesno;
 
       if (make_upper(str_yesno) == "Y") {
-        break;
+        repeat = false;
       }
       
       if (make_upper(str_yesno) == "N") {
         return;
       }
-
-      continue;
     }
   }
 
@@ -435,23 +435,20 @@ int Schedule::duration()
 
 void Schedule::display_stats(const state_t &state, int iter)
 {
-  cout 
-    << ""
-    << "iteration = " << setw(6) << right << iter
-    << " fitness: ("
-    << " a = "  << setw(3) << state.health.avoid_colls
-    << "  i = " << setw(3) << state.health.instr_colls
-    << "  r = " << setw(3) << state.health.room_colls << " )"
-    << " ( " << state.health.sched << " / " << state.vec_crs.size() << " )"
-    << endl << endl;
+  cout << "iteration = " << setw(6) << right << iter
+       << " fitness: ("
+       << " a = "  << setw(3) << state.health.avoid_colls
+       << "  i = " << setw(3) << state.health.instr_colls
+       << "  r = " << setw(3) << state.health.room_colls << " )"
+       << " ( " << state.health.sched << " / " << state.vec_crs.size() << " )"
+       << endl << endl;
 }
 
 void Schedule::get_bitsched(
   course_t              &course,
   map<string, bs_t>     &u_crs_idx,
   map<string, bs_t>     &u_instr_idx,
-  map<string, bs_t>     &u_room_idx,
-  prng_t                &my_rng)
+  map<string, bs_t>     &u_room_idx)
 {
   int i, j;
   int avoid_colls;
@@ -460,7 +457,7 @@ void Schedule::get_bitsched(
 
   bs_t bs;
   pfit_t pfit;
-  size_t idx;
+  size_t idx = 0;
 
   string str;
 
@@ -580,7 +577,7 @@ void Schedule::perturb_state(
       }
     }
 
-    get_bitsched(course, u_crs_idx, u_instr_idx, u_room_idx, my_rng);
+    get_bitsched(course, u_crs_idx, u_instr_idx, u_room_idx);
 
     course.health.bias_fitness = 0;
 

@@ -24,6 +24,10 @@
 using namespace std;
 
 
+double CMUL_AVOID = 5.062;
+double CMUL_INSTR = 18.148;
+double CMUL_ROOM  = 18.604;
+
 map<string, string> prog_opts;
 vector<vector<int> > vec_bitpos_idx;
 vector<vector<bs_t> > sched_bs_idx;
@@ -135,11 +139,6 @@ bool file_exists(const char *file)
 bool ptime_sort(const pfit_t &lhs, const pfit_t &rhs)
 {
   return lhs.health.fitness < rhs.health.fitness;
-}
-
-bool proom_sort(const room_pfit_t &lhs, const room_pfit_t &rhs)
-{
-  return lhs.weight < rhs.weight;
 }
 
 uint8_t day_to_flag(const std::string &day)

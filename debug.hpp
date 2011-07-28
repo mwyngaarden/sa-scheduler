@@ -20,7 +20,6 @@
 #if !defined(DEBUG_HPP)
 #define DEBUG_HPP
 
-#include <ctime>
 #include <fstream>
 #include <string>
 #include <vector>
