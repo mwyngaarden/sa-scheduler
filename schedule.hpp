@@ -107,6 +107,10 @@ namespace
   // permutation and evaluation
   const double TEMP_INIT  = 1.0e+1;     
   const double TEMP_MIN   = 1.0e-5; 
+
+  const double CMUL_AVOID =  5.062;
+  const double CMUL_INSTR = 18.148;
+  const double CMUL_ROOM  = 18.604;
 }
 
 #endif // !defined(SCHEDULE_HPP)

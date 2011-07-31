@@ -300,7 +300,7 @@ bool Course::push_course(course_t &course)
 
   double k;
 
-  int i, j, l;
+  int i;
 
   bs_t bs;
 
@@ -367,8 +367,8 @@ bool Course::push_course(course_t &course)
 
   } else if (course.const_time && course.const_days) {
     if (course.multi_days) {
-      for (i = 0; i < course.vec_days.size(); i++) {
-        course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.vec_days[i]));
+      for (auto it = course.vec_days.begin(); it != course.vec_days.end(); it++) {
+        course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, *it));
       }
     } else {
       course.vec_avail_times.push_back(make_bitsched(course.start_time, course.end_time, course.days));
@@ -383,9 +383,9 @@ bool Course::push_course(course_t &course)
         bs = make_bitsched(k, k + course.hours, 2 << i);
 
         if (course.multi_days) {
-          for (l = 0; l < course.vec_days.size(); l++) {
+          for (auto it = course.vec_days.begin(); it != course.vec_days.end(); it++) {
             if (!(course.const_time && ((make_bitsched(course.start_time, course.end_time, 2) ^ bs) & MASK_TIME).any()) && // dummy day
-                !(course.const_days && ((make_bitsched(12.0, 13.0, course.vec_days[l]) ^ bs) & MASK_DAY).any())) // dummy time
+                !(course.const_days && ((make_bitsched(12.0, 13.0, *it) ^ bs) & MASK_DAY).any())) // dummy time
             { 
               course.vec_avail_times.push_back(bs);
             }
@@ -401,28 +401,28 @@ bool Course::push_course(course_t &course)
   } else if (course.const_time) {
     bs = make_bitsched(course.start_time, course.end_time, 2); // dummy day
 
-    for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
-      if (((sched_bs_idx[course.hours][i] ^ bs) & MASK_TIME).none()) {
-        course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
+    for (auto it = sched_bs_idx[course.hours].begin(); it != sched_bs_idx[course.hours].end(); it++) 
+      if (((*it ^ bs) & MASK_TIME).none()) {
+        course.vec_avail_times.push_back(*it);
       }
 
   } else if (course.multi_days) {
-    for (l = 0; l < course.vec_days.size(); l++) {
-      for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
-        if ((sched_bs_idx[course.hours][i] >> 56 ^ static_cast<bs_t>(course.vec_days[l])).none()) {
-          course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
+    for (auto it_day = course.vec_days.begin(); it_day != course.vec_days.end(); it_day++) {
+      for (auto it_bs = sched_bs_idx[course.hours].begin(); it_bs != sched_bs_idx[course.hours].end(); it++)
+        if ((*it_bs >> 56 ^ static_cast<bs_t>(*it_day)).none()) {
+          course.vec_avail_times.push_back(*it_bs);
         } 
     }
   
   } else if (course.const_days) {
-    for (i = 0; i < sched_bs_idx[course.hours].size(); i++)
-      if ((sched_bs_idx[course.hours][i] >> 56 ^ static_cast<bs_t>(course.days)).none()) {
-        course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
+    for (auto it = sched_bs_idx[course.hours].begin(); it != sched_bs_idx[course.hours].end(); it++)
+      if ((*it >> 56 ^ static_cast<bs_t>(course.days)).none()) {
+        course.vec_avail_times.push_back(*it);
       }
 
   } else {
-    for (i = 0; i < sched_bs_idx[course.hours].size(); i++) {
-      course.vec_avail_times.push_back(sched_bs_idx[course.hours][i]);
+    for (auto it = sched_bs_idx[course.hours].begin(); it != sched_bs_idx[course.hours].end(); it++) {
+      course.vec_avail_times.push_back(*it);
     }
   }
 
@@ -430,10 +430,9 @@ bool Course::push_course(course_t &course)
 
     group = get_token(course.group, i, ":");
 
-    for (j = 0; j < m_mapstr_groups[group].size(); j++) {
-      str = m_mapstr_groups[group][j];
-      if (find(course.vec_avoid.begin(), course.vec_avoid.end(), str) == course.vec_avoid.end() && str != course.id) { // necessary?
-        course.vec_avoid.push_back(str);
+    for (auto it = m_mapstr_groups[group].begin(); it != m_mapstr_groups[group].end(); it++) {
+      if (find(course.vec_avoid.begin(), course.vec_avoid.end(), *it) == course.vec_avoid.end() && *it != course.name) {
+        course.vec_avoid.push_back(*it);
       }
     }
   }

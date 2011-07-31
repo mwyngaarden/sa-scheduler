@@ -29,11 +29,6 @@
 #include <vector>
 
 
-extern double CMUL_AVOID;
-extern double CMUL_INSTR;
-extern double CMUL_ROOM;
-
-
 typedef std::bitset<64> bs_t;
 const bs_t MASK_DAY   ("0011111000000000000000000000000000000000000000000000000000000000");
 const bs_t MASK_TIME  ("0000000000000000000000111111111111111111111111110000000000000000");
@@ -437,6 +432,7 @@ inline double get_score(const health_t &health)
   score += health.late_penalty * 1.0e-6;
   score += (1.0e+6 - health.bias_fitness) * 1.0e-2;
   score += health.fitness      * 1.0e+9;
+
   return score;
 }
 

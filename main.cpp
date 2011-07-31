@@ -60,7 +60,7 @@ int main()
   config_file.open(FILE_CONFIG);
 
   if (!config_file.is_open()) {
-    cout << "Configuration file not available: using defaults!" << endl;
+    cout << "Configuration file (" << FILE_CONFIG << ") not found: using defaults!" << endl;
    
   } else { // read options from file
     while(getline(config_file, str)) {
@@ -107,7 +107,7 @@ int main()
   Schedule sched;
 
   cout << endl << "Optimizing schedule..." << endl << endl;
-  
+
   sched.optimize();
 
   cout << endl 
