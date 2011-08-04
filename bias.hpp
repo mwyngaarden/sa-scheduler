@@ -60,7 +60,7 @@ class Bias
       The constructor does all the work by reading the CSV contents and setting 
       the instructor preferences, aversions, and blocks.  If the CSV contains an 
       error, then the program will exit after writing the error(s) to debug.log.
-    */
+    */ 
     Bias();
 
     int get_bias(const std::string &instr, const bs_t &bs);
