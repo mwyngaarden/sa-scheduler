@@ -176,10 +176,6 @@ Course::Course() : Bias(), Room()
 
     str = get_token(read_str, 4, ",");
 
-<<<<<<< HEAD
-=======
-    // days
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     if (str != "") {
       if (token_count(str, "/") > 1) {
         course.multi_days = true;
@@ -215,10 +211,6 @@ Course::Course() : Bias(), Room()
 
     str = get_token(read_str, 5, ",");
 
-<<<<<<< HEAD
-=======
-    // times
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     if (token_count(str, "-") == 2) {
       course.start_time = atof(get_token(str, 0, "-").c_str());
       course.end_time = atof(get_token(str, 1, "-").c_str());
@@ -228,10 +220,6 @@ Course::Course() : Bias(), Room()
 
     str = get_token(read_str, 8, ",");
 
-<<<<<<< HEAD
-=======
-    // size
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     if (str != "") {
       course.size = atoi(str.c_str());
       flag |= COURSE_SIZE;
@@ -239,10 +227,6 @@ Course::Course() : Bias(), Room()
 
     str = get_token(read_str, 9, ",");
 
-<<<<<<< HEAD
-=======
-    // lecture preference
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     if (str != "") {
       course.lectures = atoi(str.c_str());
       flag |= COURSE_LECTS;
@@ -326,19 +310,12 @@ bool Course::push_course(course_t &course)
   stringstream oss;
 
 
-<<<<<<< HEAD
   // Test for multiple room entries 
   if (course.const_room && token_count(course.room_id, ":") > 1) {
     Debug debug;
 
     // Must be false or vec_prooms wont be looked at 
     course.const_room = false;
-=======
-  // test for multiple room entries
-  if (course.const_room && token_count(course.room_id, ":") > 1) {
-    Debug debug;
-    course.const_room = false; // must be false or vec_prooms wont be looked at
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 
     for (i = 0; i < token_count(course.room_id, ":"); i++) {
       str = get_token(course.room_id, i, ":");
@@ -376,7 +353,6 @@ bool Course::push_course(course_t &course)
     }
   }
   
-<<<<<<< HEAD
   /*
     Here we update the possible times a course can be scheduled depending on
     several factors:
@@ -390,8 +366,6 @@ bool Course::push_course(course_t &course)
     We are scheduling a lab and we are using continuous labs
     The user input multiple optional days in the form MON:WED/MON:FRI
   */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
   if (course.hours == 3 && course.lectures == 2) {
     for (i = 0; i < 9; i++) {
       course.vec_avail_times.push_back(sched_bs_idx[3][i]);
@@ -463,13 +437,10 @@ bool Course::push_course(course_t &course)
     }
   }
 
-<<<<<<< HEAD
   /* 
     Update vec_avoid depending on group membership.  The group file was read at 
     the beginning of c'tor Course()  
   */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
   for (i = 0; i < token_count(course.group, ":"); i++) {
 
     group = get_token(course.group, i, ":");

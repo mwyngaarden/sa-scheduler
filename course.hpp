@@ -28,7 +28,6 @@
 #include "room.hpp"
 #include "utility.hpp"
 
-<<<<<<< HEAD
 /*!
   Course descriptions are read from a CSV and pushed to the appropriate map.
   Returns true if an entry for the course id already exists.  Group descriptions
@@ -45,12 +44,6 @@ class Course : public Bias, public Room
       and groups.  If the CSV contains an error, then the program will exit 
       after writing the error(s) to debug.log.
     */
-=======
-
-class Course : public Bias, public Room
-{
-  public:
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     Course();
     bool push_course        (course_t &course);
     bool push_const_course  (course_t &course);
@@ -64,17 +57,12 @@ class Course : public Bias, public Room
     std::ifstream group_file;
 };
 
-<<<<<<< HEAD
 /*!
   Flags used for IO parsing and error detection
 */
 namespace
 {
   /*! Number of tokens per line in courses.csv*/
-=======
-namespace
-{
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
   const int COURSE_TOKENS = 12;
   const uint32_t COURSE_AVOID = 1 <<  0;
   const uint32_t COURSE_DAYS  = 1 <<  1;
