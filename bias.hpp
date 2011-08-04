@@ -27,6 +27,7 @@
 #include "debug.hpp"
 #include "utility.hpp"
 
+<<<<<<< HEAD
 /*!
   Inherited by class Course	
 
@@ -61,6 +62,12 @@ class Bias
       the instructor preferences, aversions, and blocks.  If the CSV contains an 
       error, then the program will exit after writing the error(s) to debug.log.
     */
+=======
+
+class Bias
+{
+  public:
+>>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     Bias();
 
     int get_bias(const std::string &instr, const bs_t &bs);

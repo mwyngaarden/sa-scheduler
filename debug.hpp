@@ -24,12 +24,16 @@
 #include <string>
 #include <vector>
 
+<<<<<<< HEAD
 /*!
   The class is used to track errors and warnings throughout program execution.
   live_or_die checks for errors and warnings and outputs them to debug.log.
   If an error is found, the program exits after sending a short message to the
   console.
 */
+=======
+
+>>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 class Debug
 {
   public:

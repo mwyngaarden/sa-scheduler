@@ -26,6 +26,7 @@
 
 #include "utility.hpp"
 
+<<<<<<< HEAD
 /*!
   Inherited by class Course	
 
@@ -42,6 +43,12 @@ class Room
       in the public maps.  If the CSV contains an error, then the program will 
       exit after writing the error(s) to debug.log.
     */
+=======
+
+class Room
+{
+  public:
+>>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     Room();
     bool push_labroom(const std::string &id, int size);
     bool push_stdroom(const std::string &id, int size);
