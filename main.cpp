@@ -61,15 +61,10 @@ int main()
 
   if (!config_file.is_open()) {
     cout << "Configuration file (" << FILE_CONFIG << ") not found: using defaults!" << endl;
-<<<<<<< HEAD
   } 
 
   // Read options from config file
   else { 
-=======
-   
-  } else { // read options from file
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     while(getline(config_file, str)) {
       if (str.empty()) {
         continue;
@@ -77,19 +72,11 @@ int main()
 
       str = make_upper(str);
 
-<<<<<<< HEAD
       // Remove whitespaces 
       found = str.find(" ");
       while (found != string::npos) {
 	      str.erase(found, 1);
 	      found = str.find(" ");
-=======
-       // remove whitespace
-      found = str.find(" ");
-      while (found != string::npos) {
-	    str.erase(found, 1);
-	    found = str.find(" ");
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
       }
 
       if (str.substr(0, 1) == "#") {
@@ -118,13 +105,9 @@ int main()
 
   debug.live_or_die();
 
-<<<<<<< HEAD
   // Precompute certain indices 
   util_init();
 
-=======
-  util_init();
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
   Schedule sched;
 
   cout << endl << "Optimizing schedule..." << endl << endl;

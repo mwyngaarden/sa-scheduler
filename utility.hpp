@@ -28,7 +28,6 @@
 #include <string>
 #include <vector>
 
-<<<<<<< HEAD
 /*!
   The zeroth bit of a bitset represents 00:00 hours, the first, 00:30, and the 
   47th 23:30.  The high end 8 bits represent a day flag where the zeroth bit 
@@ -39,10 +38,6 @@
 */
 typedef std::bitset<64> bs_t;
 
-=======
-
-typedef std::bitset<64> bs_t;
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 const bs_t MASK_DAY   ("0011111000000000000000000000000000000000000000000000000000000000");
 const bs_t MASK_TIME  ("0000000000000000000000111111111111111111111111110000000000000000");
 const bs_t VALID_MASK ("1100000111111111111111000000000000000000000000001111111111111111");
@@ -57,7 +52,6 @@ const std::string FILE_HTML   = "html_header.txt";
 const std::string FILE_ROOM   = "rooms.csv";
 const std::string FILE_CONFIG = "sched.cfg";
 
-<<<<<<< HEAD
 /*! Used for error checking with parsing files */
 const std::string VALID_DAYS = "SUNMONTUEWEDTHUFRISATALL";
 
@@ -84,18 +78,6 @@ class prng_t {
     prng_t() {
       /*! Default seed */
       seed(0x84db26a9); 
-=======
-const std::string VALID_DAYS = "SUNMONTUEWEDTHUFRISATALL";
-
-const int SCORE_VOID = -100000;
-const int INF = 0x7fffffff;
-
-// Mersenne Twister
-class prng_t {
-  public:
-    prng_t() {
-      seed(0x84db26a9); // default seed
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     }
 
     prng_t(uint32_t s) {
@@ -146,13 +128,10 @@ class prng_t {
     int index;
 };
 
-<<<<<<< HEAD
 /*!
   AVR6 denotes a strong aversions, PRF6 a strong preference, and VOID
   represents a schedule block. OPEN is default.
 */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 enum e_bias {
   AVR6, AVR5, AVR4, AVR3, AVR2, AVR1,
   OPEN,
@@ -165,7 +144,6 @@ struct room_t {
   int size;
 };
 
-<<<<<<< HEAD
 /*!
   Used to evaluate schedules
 
@@ -196,8 +174,6 @@ struct room_t {
     a score computed from get_score used for optimization
 
 */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 class health_t
 {
   public:
@@ -211,10 +187,6 @@ class health_t
       sched        = 0;
 
       fitness      = 0;
-<<<<<<< HEAD
-=======
-      ffit         = 0;
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     };
 
     void init() {
@@ -227,10 +199,6 @@ class health_t
       sched        = -INF;
 
       fitness      =  1.0e+30;
-<<<<<<< HEAD
-=======
-      ffit         =  1.0e+30;
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
     };
 
     int avoid_colls;
@@ -242,7 +210,6 @@ class health_t
     int sched;
 
     double fitness;
-<<<<<<< HEAD
 };
 
 /*!
@@ -291,11 +258,6 @@ class health_t
     Saturday.  The MSB is unused.
 
 */
-=======
-    double ffit;
-};
-
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 class course_t
 {
   public:
@@ -355,25 +317,18 @@ class course_t
     uint8_t days;
 };
 
-<<<<<<< HEAD
 /*! Used to pass schedules to functions */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 struct state_t {
   health_t health;
   std::vector<course_t> vec_crs;
 };
 
-<<<<<<< HEAD
 /*! Used to sort candidate schedules for individual courses */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 struct pfit_t {
   health_t health;
   bs_t bs;
 };
 
-<<<<<<< HEAD
 /*! Index to array sizes for classes depending on hours [1,5] */
 const int sched_count_idx[6] = { 0, 25, 20, 15, 35, 7 };
 
@@ -381,14 +336,6 @@ const int sched_count_idx[6] = { 0, 25, 20, 15, 35, 7 };
   Bottom 48 bits represent the time, from left to right, 00:00-23:30
   Top 8 bits represent a day flag with the MSB being unused
 */
-=======
-struct room_pfit_t {
-  std::string id;
-  int weight;
-};
-
-const int sched_count_idx[6] = { 0, 25, 20, 15, 35, 7 };
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 const std::string sched_hex_idx[6][35] = {
   {},
   {
@@ -506,7 +453,6 @@ const std::string sched_hex_idx[6][35] = {
   }
 };
 
-<<<<<<< HEAD
 /*!
   Precomputes bit schedules and bit position indices
 
@@ -589,30 +535,6 @@ extern std::vector<std::vector<int> > vec_bitpos_idx;
 extern std::vector<std::vector<bs_t> > sched_bs_idx;
 
 /*! Remnant of threading that may be useful in future modifications */
-=======
-void util_init            ();
-
-bool ptime_sort           (const pfit_t &lhs, const pfit_t &rhs);
-
-bool file_exists          (const char *file);
-
-int token_count           (const std::string &str, std::string tok);
-std::string get_token     (const std::string &str, int n, std::string delim);
-std::string make_upper    (const std::string &str);
-std::string break_instr   (const std::vector<std::string> &vec_instr);
-std::string break_days    (const std::vector<uint8_t> &vec_days);
-
-uint8_t day_to_flag       (const std::string &day);
-int day_to_int            (const std::string &day);
-std::string flag_to_str   (uint8_t days);
-std::string vec_to_str    (const std::vector<std::string> &vec_instr);
-std::string hex_to_bin    (char hex);
-
-extern std::map<std::string, std::string> prog_opts;
-extern std::vector<std::vector<int> > vec_bitpos_idx;
-extern std::vector<std::vector<bs_t> > sched_bs_idx;
-
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 inline int cpu_max_threads()
 {
   int CPUInfo[4] = {-1};
@@ -620,14 +542,11 @@ inline int cpu_max_threads()
   return CPUInfo[0] >> 14 & 0x00000fffUi32;
 }
 
-<<<<<<< HEAD
 /*!
   A bit schedule is produced from starting and ending times along with a day
   flag.  
 
 */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
 {
   assert(start_time >= 8.0);
@@ -647,10 +566,7 @@ inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
   return bs;
 };
 
-<<<<<<< HEAD
 /*! Returns random double in the range [0, 1) */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 inline double rand_unitintvl(prng_t &rng)
 {
   return (rng() & 0x7fffffff) / 2147483648.0;
@@ -678,7 +594,6 @@ inline double stdevp(const std::vector<double> &n, const double mean)
   return sqrt(sum_sq / n.size());
 }
 
-<<<<<<< HEAD
 /*! 
   Scores for a given schedule 
 
@@ -688,8 +603,6 @@ inline double stdevp(const std::vector<double> &n, const double mean)
   3 late penalty
   4 room buffer fitness
 */
-=======
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 inline double get_score(const health_t &health)
 {
   double score = 0.0;
@@ -704,11 +617,7 @@ inline double get_score(const health_t &health)
 
 inline int get_firstbitpos(const bs_t &bs)
 {
-<<<<<<< HEAD
   assert(bs.any());
-=======
-  assert (bs.any());
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 
   for (int i = 0; i < 47; i++) {
     if (bs[i]) { 

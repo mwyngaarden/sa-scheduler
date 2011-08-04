@@ -104,13 +104,8 @@ string break_instr(const vector<string> &vec_instr)
 
   string ret_str;
 
-<<<<<<< HEAD
   for (auto it = vec_instr.begin(); it != vec_instr.end(); it++) {
     ret_str += *it + "<br>";
-=======
-  for (int i = 0; i < vec_instr.size(); i++) {
-    ret_str += vec_instr[i] + "<br>";
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
   }
 
   return ret_str;
@@ -122,13 +117,8 @@ string break_days(const vector<uint8_t> &vec_days)
 
   string ret_str;
 
-<<<<<<< HEAD
   for (auto it = vec_days.begin(); it != vec_days.end(); it++) {
     ret_str += "/" + flag_to_str(*it);
-=======
-  for (int i = 0; i < vec_days.size(); i++) {
-    ret_str += "/" + flag_to_str(vec_days[i]);
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
   }
 
   ret_str.erase(0, 1);
@@ -142,14 +132,6 @@ bool file_exists(const char *file)
   return !myfile.fail();
 }
 
-<<<<<<< HEAD
-=======
-bool ptime_sort(const pfit_t &lhs, const pfit_t &rhs)
-{
-  return lhs.health.fitness < rhs.health.fitness;
-}
-
->>>>>>> f13d734e680a209d60f636ed7cba2748acd6bb2b
 uint8_t day_to_flag(const std::string &day)
 {
   assert(day != "");
