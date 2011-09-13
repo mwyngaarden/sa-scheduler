@@ -86,7 +86,7 @@ void Schedule::optimize()
 
   assert(best_state.vec_crs.size());
 
-  // Allocated enough room for the courses
+  // Allocate enough room for the courses
   cur_state.vec_crs.resize(best_state.vec_crs.size());
 
   cout.precision(1);

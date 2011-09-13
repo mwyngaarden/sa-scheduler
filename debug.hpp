@@ -25,7 +25,7 @@
 #include <vector>
 
 /*!
-  The class is used to track errors and warnings throughout program execution.
+  Debug class is used to track errors and warnings throughout program execution.
   live_or_die checks for errors and warnings and outputs them to debug.log.
   If an error is found, the program exits after sending a short message to the
   console.
@@ -33,13 +33,26 @@
 class Debug
 {
   public:
+    /*! 
+      Checks for errors and warnings and outputs them to debug.log.  If an error
+      is found, the program exits after sending a short message to the console. 
+    */
     void live_or_die();
+
+    /*! Saves an error to m_vec_errors */
     void push_error(std::string str);
+
+    /*! Saves a warning to m_vec_warnings */
     void push_warning(std::string str);
 
   private:
+    /*! Stores errors */
     std::vector<std::string> m_vec_errors;
+
+    /*! Stores warnings */
     std::vector<std::string> m_vec_warnings;
+
+    /*! Used for referencing debug.log */
     std::ofstream debug_log;
 };
 

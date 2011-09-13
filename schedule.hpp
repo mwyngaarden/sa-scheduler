@@ -37,6 +37,15 @@
   and keeping track of the start and end time.  The score for the best solution 
   is saved in m_best_fitness.  These variables are remnants from optimizing 
   coefficients and can safely be ignored.
+
+  Private members are for:
+        
+    Referencing the HTML header file
+    Storing the HTML header for later use
+    Random number generator
+    Run time 
+    Best fitness: 
+      Used for parameter tuning and can be ignored for general usage
 */
 class Schedule : public Course
 {
@@ -91,7 +100,7 @@ class Schedule : public Course
     };
 
     /*!
-      Returns true if course is schedule-able given the number of collisions
+      Returns true if the course is schedule-able given the number of collisions
       and the bias fitness score.
     */
     bool can_schedule(const course_t &course) {
@@ -120,13 +129,19 @@ class Schedule : public Course
       return static_cast<int>((bs & MASK_DAY).count() * (bs & MASK_TIME).count());
     };
 
-    /*! Defined in more detail in schedule.cpp */
+    /*! 
+      Optimization routine containing the simulated annealing algorithm.  Upon
+      completion, data are saved to file and execution returns to main().
+    */
     void optimize         (); 
 
     /*! Sends stats to console: iteration, fitness, temperature, etc. */
     void display_stats    (const state_t &state, int iter);
 
-    /*! Called from optimize to output schedule to HTML */
+    /*! 
+      Called from optimize to output data to files, that is, html tables and 
+      scheduled.csv and failed.csv.
+    */
     void save_scheds      (state_t &state);
 
     /*! Called from save_scheds to output schedules to HTML files using tables */
@@ -136,14 +151,22 @@ class Schedule : public Course
     int duration          ();
 
   private:
+    /*! Used for referencing html_header.txt */
     std::ifstream header_file;
+
+    /*! Holds data read in from html_header.txt */ 
     std::vector<std::string> m_vec_header;
 
+    /*! Random number generator */
     prng_t m_rng;
 
+    /*! Used to track optimization run time */
     time_t m_end_time;
+
+    /*! Used to track optimization run time */
     time_t m_start_time;
     
+    /*! Used to track the best fit schedule */
     int m_best_fitness;
 };
 

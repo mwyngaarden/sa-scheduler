@@ -32,6 +32,8 @@
   Room is a simple class that reads in room descriptions from a CSV that 
   specifies rooms names, their type, and size.
 
+  The one private member is for referencing the room CSV file.
+
   Returns true if the room already exists.
 */
 class Room
@@ -43,13 +45,21 @@ class Room
       exit after writing the error(s) to debug.log.
     */
     Room();
+
+    /*! Called to save room information with an ID and room size */
     bool push_labroom(const std::string &id, int size);
+
+    /*! Called to save room information with an ID and room size */
     bool push_stdroom(const std::string &id, int size);
 
+    /*! Maintains list of lab rooms */
     std::map<std::string, room_t> m_mapstr_labrooms;
+
+    /*! Maintains list of lecture/standard rooms */
     std::map<std::string, room_t> m_mapstr_stdrooms;
 
   private:
+    /*! Used for referencing the room CSV */
     std::ifstream room_file;
 };
 

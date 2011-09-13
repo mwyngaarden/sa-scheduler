@@ -38,7 +38,7 @@
   days is an 8-bit flag where the LSB represents Sunday, followed by Monday, etc.
   The MSB is unused.
 
-  See e_bias in utility.hpp for a more details.
+  See e_bias in utility.hpp for more details.
 
   The two overloaded functions are for inputting either a type bs_t or raw 
   day and time format using the start and end time and an 8-bit day flag.
@@ -52,6 +52,9 @@
   m_mapstr_bias uses a 7*48 sized vector to index preferences, aversions, and
   blocks.  The zeroth element is Sunday at 00:00 hours, the first 00:30, the
   48th element is therefore Monday at 00:00 hours.
+
+  Private members are for maintaining the bias scores for all relevant 
+  instructors and for referencing the bias CSV.
 */
 class Bias
 {
@@ -63,14 +66,23 @@ class Bias
     */ 
     Bias();
 
+    /*! 
+      Used to return a bias score using the instructor's name and a bitsched 
+      as parameters.
+    */
     int get_bias(const std::string &instr, const bs_t &bs);
 
+    /*! 
+      Used for returning a bias score when a bitsched is not available. days is
+      an 8-bit flag using the same format as the high end 8-bits of a bitsched.      
+    */
     int get_bias(
       const std::string &instr,
       double start_time,
       double end_time,
       uint8_t days);
 
+    /*! See utility.hpp for more information on e_bias */
     void set_bias(
       const std::string &instr,
       double start_time,
@@ -79,7 +91,10 @@ class Bias
       e_bias bias);
 
   private:
+    /*! Bias scores for the relevant instructors */
     std::map<std::string, std::vector<e_bias> > m_mapstr_bias;
+
+    /*! For referencing the bias CSV file */
     std::ifstream bias_file;
 };
 

@@ -45,15 +45,27 @@ class Course : public Bias, public Room
       after writing the error(s) to debug.log.
     */
     Course();
+
+    /*! Used to save course information read in by the c'tor */
     bool push_course        (course_t &course);
+
+    /*! Used to save course information read in by the c'tor */
     bool push_const_course  (course_t &course);
 
+    /*! Holds data for constant courses that do not need to be schedules */
     std::map<std::string, course_t> m_mapstr_const_course;
+
+    /*! Holds data for courses needing to be scheduled */
     std::map<std::string, course_t> m_mapstr_course;
+
+    /*! Holds group data from the groups CSV file read in by the c'tor */
     std::map<std::string, std::vector<std::string> > m_mapstr_groups;
 
   private:
+    /*! For referencing the course CSV file */
     std::ifstream course_file;
+
+    /*! For referencing the group CSV file */
     std::ifstream group_file;
 };
 

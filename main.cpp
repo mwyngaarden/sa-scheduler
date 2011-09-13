@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -31,11 +32,11 @@ using namespace std;
 
 int main()
 {
-  cout << "SACS, a Simulated Annealing Class Scheduler" << endl
-       << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" 
-       << endl << endl 
-       << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME 
-       << endl << endl;
+  std::cout << "SACS, a Simulated Annealing Class Scheduler" << endl
+            << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" 
+            << endl << endl 
+            << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME 
+            << endl << endl;
 
   prog_opts["BUFFER"]          = "4";
   prog_opts["CONTIGUOUS-LABS"] = "TRUE";
@@ -60,7 +61,7 @@ int main()
   config_file.open(FILE_CONFIG);
 
   if (!config_file.is_open()) {
-    cout << "Configuration file (" << FILE_CONFIG << ") not found: using defaults!" << endl;
+    std::cout << "Configuration file (" << FILE_CONFIG << ") not found: using defaults!" << endl;
   } 
 
   // Read options from config file
@@ -79,6 +80,7 @@ int main()
 	      found = str.find(" ");
       }
 
+      // Ignore lines starting with a pound sign
       if (str.substr(0, 1) == "#") {
         continue;
       }
@@ -110,15 +112,15 @@ int main()
 
   Schedule sched;
 
-  cout << endl << "Optimizing schedule..." << endl << endl;
+  std::cout << endl << "Optimizing schedule..." << endl << endl;
 
   sched.optimize();
 
-  cout << endl 
-       << "Optimization complete (" << sched.duration() << " seconds)" 
-       << endl << endl;
+  std::cout << endl 
+            << "Optimization complete (" << sched.duration() << " seconds)" 
+            << endl << endl;
 
-  system("pause");
+  std::system("pause");
   
   return 0;
 }

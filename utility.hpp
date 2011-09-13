@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+
 /*!
   The zeroth bit of a bitset represents 00:00 hours, the first, 00:30, and the 
   47th 23:30.  The high end 8 bits represent a day flag where the zeroth bit 
@@ -38,13 +39,19 @@
 */
 typedef std::bitset<64> bs_t;
 
+/*! Used to XOR with a bit schedule.  Should return true for a valid bit schedule */
 const bs_t MASK_DAY   ("0011111000000000000000000000000000000000000000000000000000000000");
+
+/*! Used to XOR with a bit schedule.  Should return true for a valid bit schedule */
 const bs_t MASK_TIME  ("0000000000000000000000111111111111111111111111110000000000000000");
+
+/*! VALID_MASK = ~(MASK_DAY ^ MASK_TIME) */
 const bs_t VALID_MASK ("1100000111111111111111000000000000000000000000001111111111111111");
 
 const std::string COMPILE_TIME = __TIME__;
 const std::string COMPILE_DATE = __DATE__;
 
+/*! File names for all input files */
 const std::string FILE_BIAS   = "instructor.csv";
 const std::string FILE_COURSE = "courses.csv";
 const std::string FILE_GROUP  = "groups.csv";
@@ -139,6 +146,7 @@ enum e_bias {
   VOID
 };
 
+/*! Used to store room data */
 struct room_t {
   std::string id;
   int size;
@@ -460,8 +468,8 @@ const std::string sched_hex_idx[6][35] = {
 */
 void util_init            ();
 
+/*! Determine if file exists */
 bool file_exists          (const char *file);
-
 
 /*! 
   token_count("", ":") returns 0
@@ -478,6 +486,7 @@ int token_count           (const std::string &str, std::string tok);
 */
 std::string get_token     (const std::string &str, int n, std::string delim);
 
+/*! Convert lower case characters of string to upper case */
 std::string make_upper    (const std::string &str);
 
 /*!
@@ -513,12 +522,13 @@ int day_to_int            (const std::string &day);
 */
 std::string flag_to_str   (uint8_t days);
 
-/*! Parses vector of string into single string delimiting with a colon */
+/*! Parses vector of string into single string delimited with a colon */
 std::string vec_to_str    (const std::vector<std::string> &vec_instr);
 
 /*! Converts hex character to bit string */
 std::string hex_to_bin    (char hex);
 
+/*! Stores program options */
 extern std::map<std::string, std::string> prog_opts;
 
 /*! 
@@ -544,8 +554,7 @@ inline int cpu_max_threads()
 
 /*!
   A bit schedule is produced from starting and ending times along with a day
-  flag.  
-
+  flag that uses the same format as the high end 8-bits of a bit schedule.  
 */
 inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
 {
@@ -566,12 +575,13 @@ inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
   return bs;
 };
 
-/*! Returns random double in the range [0, 1) */
+/*! Returns a random double in the range [0, 1) */
 inline double rand_unitintvl(prng_t &rng)
 {
   return (rng() & 0x7fffffff) / 2147483648.0;
 }
 
+/*! Returns the mean of vector n of type double */
 inline double mean(const std::vector<double> &n)
 {
   double sum = 0;
@@ -583,6 +593,7 @@ inline double mean(const std::vector<double> &n)
   return sum / n.size();
 }
 
+/*! Returns the standard deviation of vector n of type double */
 inline double stdevp(const std::vector<double> &n, const double mean)
 {
   double sum_sq = 0;
@@ -615,6 +626,7 @@ inline double get_score(const health_t &health)
   return score;
 }
 
+/*! Returns the position of the first set bit of the bit schedule */
 inline int get_firstbitpos(const bs_t &bs)
 {
   assert(bs.any());

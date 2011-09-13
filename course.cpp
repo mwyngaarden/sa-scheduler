@@ -358,7 +358,7 @@ bool Course::push_course(course_t &course)
     several factors:
 
     if the lecture is three hours and the instructor specifies he wants to 
-    teach it over TUE:THU or MON_WED:FRI
+    teach it over TUE:THU or MON:WED:FRI
 
     The time was specified in the CSV
     The days were specified in the CSV
