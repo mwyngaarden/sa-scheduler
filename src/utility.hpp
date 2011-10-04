@@ -189,18 +189,20 @@ class health_t
       avoid_colls  = 0;
       bias_fitness = 0;
       buf_fitness  = 0;
+      elec_colls   = 0;
       instr_colls  = 0;
       late_penalty = 0;
       room_colls   = 0;
       sched        = 0;
 
-      fitness      = 0;
+      fitness      = 0.0;
     };
 
     void init() {
       avoid_colls  =  INF;
       bias_fitness = -INF;
       buf_fitness  =  INF;
+      elec_colls   =  INF;
       instr_colls  =  INF;
       late_penalty =  INF;
       room_colls   =  INF;
@@ -212,6 +214,7 @@ class health_t
     int avoid_colls;
     int bias_fitness;
     int buf_fitness;
+    int elec_colls;
     int instr_colls;
     int late_penalty;
     int room_colls;
@@ -290,6 +293,7 @@ class course_t
       vec_avail_times.clear();
       vec_avoid.clear();
       vec_days.clear();
+      vec_elec.clear();
       vec_instr.clear();
       vec_prooms.clear();
     };
@@ -317,8 +321,11 @@ class course_t
     std::string room_id;
 
     std::vector<bs_t> vec_avail_times;
+
     std::vector<std::string> vec_avoid;
+    std::vector<std::string> vec_elec;
     std::vector<std::string> vec_instr;
+
     std::vector<room_t> vec_prooms;
     std::vector<uint8_t> vec_days;
 
@@ -614,14 +621,13 @@ inline double stdevp(const std::vector<double> &n, const double mean)
   3 late penalty
   4 room buffer fitness
 */
-inline double get_score(const health_t &health)
+inline double get_score(const health_t &health, size_t s)
 {
-  double score = 0.0;
-  
-  score += health.buf_fitness  * 1.0e-1;
-  score += health.late_penalty * 1.0e-6;
-  score += (1.0e+6 - health.bias_fitness) * 1.0e-2;
-  score += health.fitness      * 1.0e+9;
+  double score = static_cast<double>(s);
+
+  score -= health.sched;
+
+  score -= health.bias_fitness / (1000.0 * s); 
 
   return score;
 }

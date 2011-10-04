@@ -27,7 +27,7 @@ See the file "copying.txt" for details.
 General
 -------
 
-Today's date is August 22, 2011. 
+Today's date is September 4, 2011. 
 
 SACS is a class scheduler written in C++ that uses instructor aversions and 
 preferences to put together a working schedule with a list of courses taken 
@@ -36,8 +36,6 @@ courses.csv allows classes to be scheduled avoiding time slots for any other
 specified class, to be scheduled or not, and of course avoid instructor blocks, 
 where applicable.
 
-See index.html in the doc directory for a more detailed explanation of the 
-source code.
 
 
 

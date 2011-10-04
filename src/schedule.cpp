@@ -102,8 +102,10 @@ void Schedule::optimize()
     perturb_state(best_state, health, cur_state.vec_crs, my_rng);
 
     cur_state.health = health;
-    cur_state.health.fitness = static_cast<int>(cur_state.vec_crs.size()) - cur_state.health.sched;
-    
+    cur_state.health.fitness = get_score(health, cur_state.vec_crs.size());
+
+    //cur_state.health.fitness = static_cast<int>(cur_state.vec_crs.size()) - cur_state.health.sched;
+
     delta = cur_state.health.fitness - best_state.health.fitness;
 
     /* 
@@ -451,6 +453,7 @@ void Schedule::display_stats(const state_t &state, int iter)
   cout << "iteration = " << setw(6) << right << iter
        << " fitness: ("
        << " a = "  << setw(3) << state.health.avoid_colls
+       << "  e = " << setw(3) << state.health.elec_colls
        << "  i = " << setw(3) << state.health.instr_colls
        << "  r = " << setw(3) << state.health.room_colls << " )"
        << " ( " << state.health.sched << " / " << state.vec_crs.size() << " )"
@@ -465,6 +468,7 @@ void Schedule::get_bitsched(
 {
   int i, j;
   int avoid_colls;
+  int elec_colls;
   int instr_colls;
   int room_colls;
 
@@ -479,6 +483,7 @@ void Schedule::get_bitsched(
   // vec_avail_times was computed when we grabbed the course entry from courses.csv
   for (i = 0; i < course.vec_avail_times.size(); i++) {
     avoid_colls = 0;
+    elec_colls  = 0;
     instr_colls = 0;
     room_colls  = 0;
 
@@ -486,23 +491,28 @@ void Schedule::get_bitsched(
 
     // Calculate avoidance collisions 
     for (auto it = course.vec_avoid.begin(); it != course.vec_avoid.end(); it++) {
-      str = *it;
-      avoid_colls += num_conflicts(u_crs_idx[str] & bs);
+      avoid_colls += num_conflicts(u_crs_idx[*it] & bs);
     }
 
+    for (auto it = course.vec_elec.begin(); it != course.vec_elec.end(); it++) {
+      elec_colls += num_conflicts(u_crs_idx[*it] & bs);
+    }
+   
     room_colls += num_conflicts(u_room_idx[course.room_id] & bs);
 
     // Calculate instructor collisions
     for (auto it = course.vec_instr.begin(); it != course.vec_instr.end(); it++) {
-      str = *it;
-      instr_colls += num_conflicts(u_instr_idx[str] & bs);
+      instr_colls += num_conflicts(u_instr_idx[*it] & bs);
     }
 
     pfit.bs = bs;
     pfit.health.avoid_colls = avoid_colls;
+    pfit.health.elec_colls  = elec_colls;
     pfit.health.instr_colls = instr_colls;
     pfit.health.room_colls  = room_colls;
+
     pfit.health.fitness     = CMUL_AVOID * avoid_colls + 
+                              CMUL_ELEC  * elec_colls  +
                               CMUL_INSTR * instr_colls + 
                               CMUL_ROOM  * room_colls;
     
@@ -514,6 +524,7 @@ void Schedule::get_bitsched(
 
   course.bs_sched = best_pfit.bs;
   course.health.avoid_colls = best_pfit.health.avoid_colls;
+  course.health.elec_colls  = best_pfit.health.elec_colls;
   course.health.instr_colls = best_pfit.health.instr_colls;
   course.health.room_colls  = best_pfit.health.room_colls;
   
@@ -609,7 +620,7 @@ void Schedule::perturb_state(
 
     // Check for global blocks 
     if (get_bias("ALL", course.bs_sched) == SCORE_VOID) {
-      course.health.bias_fitness -= SCORE_VOID;
+      course.health.bias_fitness += SCORE_VOID;
     }
 
     // Sanity check! 
@@ -630,6 +641,7 @@ void Schedule::perturb_state(
     health.avoid_colls  += course.health.avoid_colls;
     health.bias_fitness += course.health.bias_fitness;
     health.buf_fitness  += course.health.buf_fitness;
+    health.elec_colls   += course.health.elec_colls;
     health.instr_colls  += course.health.instr_colls;
     health.late_penalty += ((course.bs_sched & MASK_TIME) >> 16).to_ulong();
     health.room_colls   += course.health.room_colls;

@@ -184,6 +184,7 @@ namespace
     classes.
   */
   const double CMUL_AVOID =  5.062;
+  const double CMUL_ELEC  =  1.000;
   const double CMUL_INSTR = 18.148;
   const double CMUL_ROOM  = 18.604;
 }

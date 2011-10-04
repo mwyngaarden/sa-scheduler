@@ -59,7 +59,9 @@ class Course : public Bias, public Room
     std::map<std::string, course_t> m_mapstr_course;
 
     /*! Holds group data from the groups CSV file read in by the c'tor */
-    std::map<std::string, std::vector<std::string> > m_mapstr_groups;
+    std::map<std::string, std::vector<std::string> > m_mapstr_core;
+    std::map<std::string, std::vector<std::string> > m_mapstr_elec;
+
 
   private:
     /*! For referencing the course CSV file */

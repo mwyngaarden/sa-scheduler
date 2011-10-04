@@ -35,6 +35,8 @@ Course::Course() : Bias(), Room()
   int i, j;
   int line;
 
+  bool core;
+
   size_t found;
 
   string avoid;
@@ -83,8 +85,25 @@ Course::Course() : Bias(), Room()
     for (i = 1; i < token_count(read_str, ","); i++) {
       str = get_token(read_str, i, ",");
 
+      if ((get_token(str, 0, "/") != "CORE" && get_token(str, 0, "/") != "ELEC")
+          || (token_count(get_token(str, 1, "/"), ":") < 1)) 
+      {
+        oss << "Invalid group description at line " << line
+            << ": invalid format, use CORE or ELEC";
+        debug.push_error(oss.str());
+        oss.str("");
+        continue;
+      }
+
+      core = get_token(str, 0, "/") == "CORE";
+      str = get_token(str, 1, "/");
+
       for (j = 0; j < token_count(str, ":"); j++) {
-        m_mapstr_groups[get_token(read_str, 0, ",")].push_back(get_token(str, j, ":"));
+        if (core) {
+          m_mapstr_core[get_token(read_str, 0, ",")].push_back(get_token(str, j, ":"));
+        } else {
+          m_mapstr_elec[get_token(read_str, 0, ",")].push_back(get_token(str, j, ":"));
+        }
       }
     }
   }
@@ -438,16 +457,22 @@ bool Course::push_course(course_t &course)
   }
 
   /* 
-    Update vec_avoid depending on group membership.  The group file was read at 
+    Update vec_core/vec_elec depending on group membership.  The group file was read at 
     the beginning of c'tor Course()  
   */
   for (i = 0; i < token_count(course.group, ":"); i++) {
 
     group = get_token(course.group, i, ":");
 
-    for (auto it = m_mapstr_groups[group].begin(); it != m_mapstr_groups[group].end(); it++) {
+    for (auto it = m_mapstr_core[group].begin(); it != m_mapstr_core[group].end(); it++) {
       if (find(course.vec_avoid.begin(), course.vec_avoid.end(), *it) == course.vec_avoid.end() && *it != course.name) {
         course.vec_avoid.push_back(*it);
+      }
+    }
+
+    for (auto it = m_mapstr_elec[group].begin(); it != m_mapstr_elec[group].end(); it++) {
+      if (find(course.vec_elec.begin(), course.vec_elec.end(), *it) == course.vec_elec.end() && *it != course.name) {
+        course.vec_elec.push_back(*it);
       }
     }
   }
