@@ -3,7 +3,7 @@ Legal details
 -------------
 
 SACS, a Simulated Annealing Class Scheduler
-Copyright (C) 2011  Martin Wyngaarden
+Copyright (C) 2011-2012  Martin Wyngaarden
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ See the file "copying.txt" for details.
 General
 -------
 
-Today's date is September 4, 2011. 
+Today's date is April 7, 2012. 
 
 SACS is a class scheduler written in C++ that uses instructor aversions and 
 preferences to put together a working schedule with a list of courses taken 

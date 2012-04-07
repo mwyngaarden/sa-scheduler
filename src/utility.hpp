@@ -1,6 +1,6 @@
 /*
  *    SACS, a Simulated Annealing Class Scheduler
- *    Copyright (C) 2011  Martin Wyngaarden
+ *    Copyright (C) 2011-2012  Martin Wyngaarden
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@
 
 
 /*!
-  The zeroth bit of a bitset represents 00:00 hours, the first, 00:30, and the 
-  47th 23:30.  The high end 8 bits represent a day flag where the zeroth bit 
+  The zeroth bit of a bitset represents 00:00 hours, the first, 00:30, and the
+  47th 23:30.  The high end 8 bits represent a day flag where the zeroth bit
   represents Sunday, the first Monday, and the MSB is unused.
 
   MASKS are used when DEBUG is defined to check for improperly constructed bit
@@ -70,9 +70,9 @@ const int INF = 0x7fffffff;
 
 /*!
   Mersenne Twister: psuedo-random number generator
-  
+
   Useful in Monte Carlo simulations for its high degree of randomness and very
-  long period.  
+  long period.
 
   Works much the same way as rand():
 
@@ -80,66 +80,69 @@ const int INF = 0x7fffffff;
 
     uint32_t n = rng();
 */
-class prng_t {
-  public:
-    prng_t() {
-      /*! Default seed */
-      seed(0x84db26a9); 
+class prng_t
+{
+public:
+  prng_t()
+  {
+    /*! Default seed */
+    seed (0x84db26a9);
+  }
+
+  prng_t (uint32_t s)
+  {
+    seed (s);
+  };
+
+  void seed (uint32_t s)
+  {
+    MT[0] = s;
+
+    for (int i = 1; i < 624; i++)
+      MT[i] = 0x6c078965 * (MT[i-1] >> 30 ^ MT[i-1]) + i;
+
+    index = -1;
+  };
+
+  uint32_t operator() ()
+  {
+    uint32_t y;
+    index++;
+
+    if (index > 623)
+      index = 0;
+
+    if (!index)
+    {
+      for (int i = 0; i < 624; i++)
+      {
+        y = (MT[i] & 0x80000000) | (MT[ (i + 1) % 624] & 0x7fffffff);
+        MT[i] = MT[ (i + 397) % 624] ^ y >> 1;
+
+        if (y & 0x1)
+          MT[i] ^= 0x9908b0df;
+      }
     }
 
-    prng_t(uint32_t s) {
-      seed(s);
-    };
+    y = MT[index];
+    y ^= y >> 11;
+    y ^= y <<  7 & 0x9d2c5680;
+    y ^= y << 15 & 0xefc60000;
+    y ^= y >> 18;
+    return y;
+  };
 
-    void seed(uint32_t s) {
-      MT[0] = s;
-      for (int i = 1; i < 624; i++) {
-        MT[i] = 0x6c078965 * (MT[i-1] >> 30 ^ MT[i-1]) + i;
-      }
-
-      index = -1;
-    };
-
-    uint32_t operator()() {
-      
-      uint32_t y;
-
-      index++;
-
-      if (index > 623) {
-        index = 0;
-      }
-
-      if (!index) {
-        for (int i = 0; i < 624; i++) {
-          y = (MT[i] & 0x80000000) | (MT[(i + 1) % 624] & 0x7fffffff);
-          MT[i] = MT[(i + 397) % 624] ^ y >> 1;
-
-          if (y & 0x1) {
-            MT[i] ^= 0x9908b0df;
-          }
-        }
-      }
-
-      y = MT[index];
-      y ^= y >> 11;
-      y ^= y <<  7 & 0x9d2c5680;
-      y ^= y << 15 & 0xefc60000;
-      y ^= y >> 18;
-
-      return y;      
-    };
-
-  private:
-    uint32_t MT[624];
-    int index;
+private:
+  uint32_t MT[624];
+  int index;
 };
 
 /*!
   AVR6 denotes a strong aversions, PRF6 a strong preference, and VOID
   represents a schedule block. OPEN is default.
 */
-enum e_bias {
+enum e_bias
+{
   AVR6, AVR5, AVR4, AVR3, AVR2, AVR1,
   OPEN,
   PRF1, PRF2, PRF3, PRF4, PRF5, PRF6,
@@ -147,7 +150,8 @@ enum e_bias {
 };
 
 /*! Used to store room data */
-struct room_t {
+struct room_t
+{
   std::string id;
   int size;
 };
@@ -155,17 +159,17 @@ struct room_t {
 /*!
   Used to evaluate schedules
 
-  avoid_colls: 
+  avoid_colls:
     number of block avoidance collisions
-  
-  bias_fitness: 
+
+  bias_fitness:
     instructor bias score
-  
-  buf_fitness: 
+
+  buf_fitness:
     room buffer score that is for scheduling classes with extra seats.  The
     the absolute difference between the room size, and the class size minus 4,
     the greater the score.
-                
+
   instr_colls:
     number of block instructor collisions
 
@@ -174,7 +178,7 @@ struct room_t {
 
   room_colls:
     number of block room collisions
-  
+
   sched:
     number of scheduleable classes
 
@@ -184,43 +188,43 @@ struct room_t {
 */
 class health_t
 {
-  public:
-    void reset() {
-      avoid_colls  = 0;
-      bias_fitness = 0;
-      buf_fitness  = 0;
-      elec_colls   = 0;
-      instr_colls  = 0;
-      late_penalty = 0;
-      room_colls   = 0;
-      sched        = 0;
+public:
+  void reset()
+  {
+    avoid_colls  = 0;
+    bias_fitness = 0;
+    buf_fitness  = 0;
+    elec_colls   = 0;
+    instr_colls  = 0;
+    late_penalty = 0;
+    room_colls   = 0;
+    sched        = 0;
+    fitness      = 0.0;
+  };
 
-      fitness      = 0.0;
-    };
+  void init()
+  {
+    avoid_colls  =  INF;
+    bias_fitness = -INF;
+    buf_fitness  =  INF;
+    elec_colls   =  INF;
+    instr_colls  =  INF;
+    late_penalty =  INF;
+    room_colls   =  INF;
+    sched        = -INF;
+    fitness      =  1.0e+30;
+  };
 
-    void init() {
-      avoid_colls  =  INF;
-      bias_fitness = -INF;
-      buf_fitness  =  INF;
-      elec_colls   =  INF;
-      instr_colls  =  INF;
-      late_penalty =  INF;
-      room_colls   =  INF;
-      sched        = -INF;
+  int avoid_colls;
+  int bias_fitness;
+  int buf_fitness;
+  int elec_colls;
+  int instr_colls;
+  int late_penalty;
+  int room_colls;
+  int sched;
 
-      fitness      =  1.0e+30;
-    };
-
-    int avoid_colls;
-    int bias_fitness;
-    int buf_fitness;
-    int elec_colls;
-    int instr_colls;
-    int late_penalty;
-    int room_colls;
-    int sched;
-
-    double fitness;
+  double fitness;
 };
 
 /*!
@@ -228,7 +232,7 @@ class health_t
 
   bool const_days:
     true if specific day or days are read from the CSV
-      
+
   bool const_room:
     true if a specific room or rooms are read from the CSV
 
@@ -244,14 +248,14 @@ class health_t
     the score for a given annealing iteration
 
   int lectures:
-    for 3 hour lectures, the instructor can specify a 2 or a 3 depending if 
+    for 3 hour lectures, the instructor can specify a 2 or a 3 depending if
     they want to teach on TUE:THU, or MON:WED:FRI
 
   vector<bs_t> vec_avail_times:
     the times a class can be schedules
 
   vector<string> vec_avoid:
-    the names of the classes that the course should not be scheduled 
+    the names of the classes that the course should not be scheduled
     concurrently with
 
   vector<string> vec_instr:
@@ -259,9 +263,9 @@ class health_t
 
   vector<room_t> vec_prooms:
     potential rooms available for use depending on if lab or lecture and size
-  
+
   vector<uint8_t> vec_days:
-    used in conjunction with multi_days when multiple optional days are read 
+    used in conjunction with multi_days when multiple optional days are read
     from the CSV
 
   uint8_t days:
@@ -271,75 +275,78 @@ class health_t
 */
 class course_t
 {
-  public:
-    void reset() {
-      const_days   = false;
-      const_room   = false;
-      const_time   = false;
-      days         = 0;
-      end_time     = 0.0;
-      group        = "";
-      hours        = 0;
-      id           = "";
-      is_lab       = false;
-      lectures     = 0;
-      multi_days   = false;
-      name         = "";
-      room_id      = "";
-      size         = 0;
-      start_time   = 0.0;
-      bs_sched.reset();
-      health.init();
-      vec_avail_times.clear();
-      vec_avoid.clear();
-      vec_days.clear();
-      vec_elec.clear();
-      vec_instr.clear();
-      vec_prooms.clear();
-    };
+public:
+  void reset()
+  {
+    const_days   = false;
+    const_room   = false;
+    const_time   = false;
+    days         = 0;
+    end_time     = 0.0;
+    group        = "";
+    hours        = 0;
+    id           = "";
+    is_lab       = false;
+    lectures     = 0;
+    multi_days   = false;
+    name         = "";
+    room_id      = "";
+    size         = 0;
+    start_time   = 0.0;
+    bs_sched.reset();
+    health.init();
+    vec_avail_times.clear();
+    vec_avoid.clear();
+    vec_days.clear();
+    vec_elec.clear();
+    vec_instr.clear();
+    vec_prooms.clear();
+  };
 
-    bool const_days;
-    bool const_room;
-    bool const_time;
-    bool is_lab;
-    bool multi_days;
+  bool const_days;
+  bool const_room;
+  bool const_time;
+  bool is_lab;
+  bool multi_days;
 
-    double end_time;
-    double start_time;
+  double end_time;
+  double start_time;
 
-    health_t health;
+  health_t health;
 
-    int hours;
-    int lectures;
-    int size;
+  int hours;
+  int lectures;
+  int size;
 
-    std::bitset<64> bs_sched;
+  std::bitset<64> bs_sched;
 
-    std::string group;
-    std::string id;
-    std::string name;
-    std::string room_id;
+  std::string group;
+  std::string id;
+  std::string name;
+  std::string room_id;
 
-    std::vector<bs_t> vec_avail_times;
+  std::vector<bs_t> vec_avail_times;
 
-    std::vector<std::string> vec_avoid;
-    std::vector<std::string> vec_elec;
-    std::vector<std::string> vec_instr;
+  std::vector<std::string> vec_avoid;
+  std::vector<std::string> vec_elec;
+  std::vector<std::string> vec_instr;
 
-    std::vector<room_t> vec_prooms;
-    std::vector<uint8_t> vec_days;
+  std::vector<room_t> vec_prooms;
+  std::vector<uint8_t> vec_days;
 
-    uint8_t days;
+  uint8_t days;
 };
 
 /*! Used to pass schedules to functions */
-struct state_t {
+struct state_t
+{
   health_t health;
   std::vector<course_t> vec_crs;
 };
 
 /*! Used to sort candidate schedules for individual courses */
-struct pfit_t {
+struct pfit_t
+{
   health_t health;
   bs_t bs;
 };
@@ -347,11 +354,12 @@ struct pfit_t {
 /*! Index to array sizes for classes depending on hours [1,5] */
 const int sched_count_idx[6] = { 0, 25, 20, 15, 35, 7 };
 
-/*!  
+/*!
   Bottom 48 bits represent the time, from left to right, 00:00-23:30
   Top 8 bits represent a day flag with the MSB being unused
 */
-const std::string sched_hex_idx[6][35] = {
+const std::string sched_hex_idx[6][35] =
+{
   {},
   {
     "0200000003000000", //M
@@ -478,7 +486,7 @@ void util_init            ();
 /*! Determine if file exists */
 bool file_exists          (const char *file);
 
-/*! 
+/*!
   token_count("", ":") returns 0
   token_count("a", ":") returns 1
   token_count("a:", ":") returns 2
@@ -502,7 +510,7 @@ std::string make_upper    (const std::string &str);
 */
 std::string break_instr   (const std::vector<std::string> &vec_instr);
 
-/*! 
+/*!
   Simular to break_instr, except that instead of "<br>", "/" is used in keeping
   with the input format of courses.csv
 */
@@ -538,82 +546,71 @@ std::string hex_to_bin    (char hex);
 /*! Stores program options */
 extern std::map<std::string, std::string> prog_opts;
 
-/*! 
+/*!
   2D Precomputed indices
 
   vec_bitpos_idx[uint8_t].size() returns the number of set bits
 
   vec_bitpos_idx[uint8_t][x] translates bit position to an index to schedule
   in the range [0, 335]
-*/  
+*/
 extern std::vector<std::vector<int> > vec_bitpos_idx;
 
 /*! Holds the potential bit schedules for [1,5] hour classes */
 extern std::vector<std::vector<bs_t> > sched_bs_idx;
 
-/*! Remnant of threading that may be useful in future modifications */
-inline int cpu_max_threads()
-{
-  int CPUInfo[4] = {-1};
-  __cpuid(CPUInfo, 0x00000001Ui32);
-  return CPUInfo[0] >> 14 & 0x00000fffUi32;
-}
-
 /*!
   A bit schedule is produced from starting and ending times along with a day
-  flag that uses the same format as the high end 8-bits of a bit schedule.  
+  flag that uses the same format as the high end 8-bits of a bit schedule.
 */
-inline bs_t make_bitsched(double start_time, double end_time, uint8_t days)
+inline bs_t make_bitsched (double start_time, double end_time, uint8_t days)
 {
-  assert(start_time >= 8.0);
-  assert(start_time < 21.0);
-  assert(end_time > start_time);
-  assert(end_time <= 21.0);
-  assert(!(0xc1 & days));
-  assert(0x3e & days);
+  assert (start_time >= 8.0);
+  assert (start_time < 21.0);
+  assert (end_time > start_time);
+  assert (end_time <= 21.0);
+  assert (! (0xc1 & days) );
+  assert (0x3e & days);
 
-  bs_t bs(days);
+  bs_t bs (days);
   bs <<= 56;
 
-  for (int i = static_cast<int>(2 * start_time); i < static_cast<int>(2 * end_time); i++) {
-    bs.set(i, 1);
-  }
+  for (int i = static_cast<int> (2 * start_time); i < static_cast<int> (2 * end_time); i++)
+    bs.set (i, 1);
 
   return bs;
 };
 
 /*! Returns a random double in the range [0, 1) */
-inline double rand_unitintvl(prng_t &rng)
+inline double rand_unitintvl (prng_t &rng)
 {
   return (rng() & 0x7fffffff) / 2147483648.0;
 }
 
 /*! Returns the mean of vector n of type double */
-inline double mean(const std::vector<double> &n)
+inline double mean (const std::vector<double> &n)
 {
   double sum = 0;
 
-  for (int i = 0; i < n.size(); i++) {
+  for (int i = 0; i < n.size(); i++)
     sum += n[i];
-  }
 
   return sum / n.size();
 }
 
 /*! Returns the standard deviation of vector n of type double */
-inline double stdevp(const std::vector<double> &n, const double mean)
+inline double stdevp (const std::vector<double> &n, const double mean)
 {
   double sum_sq = 0;
 
-  for (int i = 0; i < n.size(); i++) {
-    sum_sq += pow(n[i] - mean, 2);
-  }
+  for (int i = 0; i < n.size(); i++)
+    sum_sq += pow (n[i] - mean, 2);
 
-  return sqrt(sum_sq / n.size());
+  return sqrt (sum_sq / n.size() );
 }
 
-/*! 
-  Scores for a given schedule 
+/*!
+  Scores for a given schedule
 
   Coefficients are hard coded such that the importance of scores runs:
   1 fitness
@@ -621,27 +618,22 @@ inline double stdevp(const std::vector<double> &n, const double mean)
   3 late penalty
   4 room buffer fitness
 */
-inline double get_score(const health_t &health, size_t s)
+inline double get_score (const health_t &health, size_t s)
 {
-  double score = static_cast<double>(s);
-
+  double score = static_cast<double> (s);
   score -= health.sched;
-
-  score -= health.bias_fitness / (1000.0 * s); 
-
+  score -= health.bias_fitness / (1000.0 * s);
   return score;
 }
 
 /*! Returns the position of the first set bit of the bit schedule */
-inline int get_firstbitpos(const bs_t &bs)
+inline int get_firstbitpos (const bs_t &bs)
 {
-  assert(bs.any());
+  assert (bs.any() );
 
-  for (int i = 0; i < 47; i++) {
-    if (bs[i]) { 
+  for (int i = 0; i < 47; i++)
+    if (bs[i])
       return i;
-    }
-  }
 
   return 47;
 }

@@ -1,6 +1,6 @@
 /*
  *    SACS, a Simulated Annealing Class Scheduler
- *    Copyright (C) 2011  Martin Wyngaarden
+ *    Copyright (C) 2011-2012  Martin Wyngaarden
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -32,28 +32,28 @@
 */
 class Debug
 {
-  public:
-    /*! 
-      Checks for errors and warnings and outputs them to debug.log.  If an error
-      is found, the program exits after sending a short message to the console. 
-    */
-    void live_or_die();
+public:
+  /*!
+    Checks for errors and warnings and outputs them to debug.log.  If an error
+    is found, the program exits after sending a short message to the console.
+  */
+  void live_or_die();
 
-    /*! Saves an error to m_vec_errors */
-    void push_error(std::string str);
+  /*! Saves an error to m_vec_errors */
+  void push_error (std::string str);
 
-    /*! Saves a warning to m_vec_warnings */
-    void push_warning(std::string str);
+  /*! Saves a warning to m_vec_warnings */
+  void push_warning (std::string str);
 
-  private:
-    /*! Stores errors */
-    std::vector<std::string> m_vec_errors;
+private:
+  /*! Stores errors */
+  std::vector<std::string> m_vec_errors;
 
-    /*! Stores warnings */
-    std::vector<std::string> m_vec_warnings;
+  /*! Stores warnings */
+  std::vector<std::string> m_vec_warnings;
 
-    /*! Used for referencing debug.log */
-    std::ofstream debug_log;
+  /*! Used for referencing debug.log */
+  std::ofstream debug_log;
 };
 
 #endif // !defined(DEBUG_HPP)

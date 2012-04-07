@@ -1,6 +1,6 @@
 /*
  *    SACS, a Simulated Annealing Class Scheduler
- *    Copyright (C) 2011  Martin Wyngaarden
+ *    Copyright (C) 2011-2012  Martin Wyngaarden
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@ using namespace std;
 int main()
 {
   std::cout << "SACS, a Simulated Annealing Class Scheduler" << endl
-            << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)" 
-            << endl << endl 
-            << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME 
+            << "Copyright (C) 2011  Martin Wyngaarden (wyngaardenm@gmail.com)"
+            << endl << endl
+            << "Compiled " << COMPILE_DATE << " at " << COMPILE_TIME
             << endl << endl;
 
   prog_opts["BUFFER"]          = "4";
@@ -53,61 +53,57 @@ int main()
   string value;
 
   fstream config_file;
-
   stringstream oss;
-
   Debug debug;
+  config_file.open (FILE_CONFIG);
 
-  config_file.open(FILE_CONFIG);
-
-  if (!config_file.is_open()) {
+  if (!config_file.is_open() )
     std::cout << "Configuration file (" << FILE_CONFIG << ") not found: using defaults!" << endl;
-  } 
 
   // Read options from config file
-  else { 
-    while(getline(config_file, str)) {
-      if (str.empty()) {
+  else
+  {
+    while (getline (config_file, str) )
+    {
+      if (str.empty() )
         continue;
-      }
 
-      str = make_upper(str);
+      str = make_upper (str);
+      // Remove whitespaces
+      found = str.find (" ");
 
-      // Remove whitespaces 
-      found = str.find(" ");
-      while (found != string::npos) {
-	      str.erase(found, 1);
-	      found = str.find(" ");
+      while (found != string::npos)
+      {
+        str.erase (found, 1);
+        found = str.find (" ");
       }
 
       // Ignore lines starting with a pound sign
-      if (str.substr(0, 1) == "#") {
+      if (str.substr (0, 1) == "#")
         continue;
-      }
 
-      option = get_token(str, 0, "=");
-      value  = get_token(str, 1, "=");
-        
-      if (option == "" || value == "") {
-         continue;
-      }
+      option = get_token (str, 0, "=");
+      value  = get_token (str, 1, "=");
 
-      if (prog_opts.find(option) == prog_opts.end()) {
+      if (option == "" || value == "")
+        continue;
+
+      if (prog_opts.find (option) == prog_opts.end() )
+      {
         oss << "Invalid option: " << option;
-        debug.push_error(oss.str());
-        oss.str("");
-        
-      } else {
-        prog_opts[option] = value;
+        debug.push_error (oss.str() );
+        oss.str ("");
       }
+
+      else
+        prog_opts[option] = value;
     }
   }
 
   config_file.close();
-
   debug.live_or_die();
 
-  // Precompute certain indices 
+  // Precompute certain indices
   util_init();
 
   Schedule sched;
@@ -116,12 +112,11 @@ int main()
 
   sched.optimize();
 
-  std::cout << endl 
-            << "Optimization complete (" << sched.duration() << " seconds)" 
+  std::cout << endl
+            << "Optimization complete (" << sched.duration() << " seconds)"
             << endl << endl;
 
-  std::system("pause");
-  
+  std::system ("pause");
   return 0;
 }
 

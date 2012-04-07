@@ -1,6 +1,6 @@
 /*
  *    SACS, a Simulated Annealing Class Scheduler
- *    Copyright (C) 2011  Martin Wyngaarden
+ *    Copyright (C) 2011-2012  Martin Wyngaarden
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@
 #include "utility.hpp"
 
 /*!
-  Inherited by class Course	
+  Inherited by class Course
 
-  Room is a simple class that reads in room descriptions from a CSV that 
+  Room is a simple class that reads in room descriptions from a CSV that
   specifies rooms names, their type, and size.
 
   The one private member is for referencing the room CSV file.
@@ -38,29 +38,29 @@
 */
 class Room
 {
-  public:
-    /*!
-      The constructor does all the work by reading the CSV contents and filling 
-      in the public maps.  If the CSV contains an error, then the program will 
-      exit after writing the error(s) to debug.log.
-    */
-    Room();
+public:
+  /*!
+    The constructor does all the work by reading the CSV contents and filling
+    in the public maps.  If the CSV contains an error, then the program will
+    exit after writing the error(s) to debug.log.
+  */
+  Room();
 
-    /*! Called to save room information with an ID and room size */
-    bool push_labroom(const std::string &id, int size);
+  /*! Called to save room information with an ID and room size */
+  bool push_labroom (const std::string &id, int size);
 
-    /*! Called to save room information with an ID and room size */
-    bool push_stdroom(const std::string &id, int size);
+  /*! Called to save room information with an ID and room size */
+  bool push_stdroom (const std::string &id, int size);
 
-    /*! Maintains list of lab rooms */
-    std::map<std::string, room_t> m_mapstr_labrooms;
+  /*! Maintains list of lab rooms */
+  std::map<std::string, room_t> m_mapstr_labrooms;
 
-    /*! Maintains list of lecture/standard rooms */
-    std::map<std::string, room_t> m_mapstr_stdrooms;
+  /*! Maintains list of lecture/standard rooms */
+  std::map<std::string, room_t> m_mapstr_stdrooms;
 
-  private:
-    /*! Used for referencing the room CSV */
-    std::ifstream room_file;
+private:
+  /*! Used for referencing the room CSV */
+  std::ifstream room_file;
 };
 
 #endif // !defined(ROOM_HPP)
